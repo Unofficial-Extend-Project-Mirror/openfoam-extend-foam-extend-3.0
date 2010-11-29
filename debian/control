@@ -1,0 +1,30 @@
+Source: openfoam-1.6-ext
+Section: science
+Priority: extra
+Maintainer: Oliver Borm <oli.borm@web.de>
+Build-Depends: cdbs, debhelper (>= 7), binutils-dev, flex, libmgridgen-dev,
+ libopenmpi-dev, libparmetis-dev, libreadline-dev, zlib1g-dev, doxygen,
+ graphviz, texlive-base, libmesquite-dev
+Standards-Version: 3.9.1
+
+Package: openfoam-1.6-ext
+Section: science
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, openssh-server
+Recommends: openmpi-bin, paraview, python
+Description: openfoam - runtime tools
+ Binaries and Libraries for OpenFOAM-ext.
+
+Package: openfoam-1.6-ext-doc
+Section: doc
+Architecture: all
+Depends: ${misc:Depends}
+Description: Documentation for openfoam
+ Documentation (Doxygen) for OpenFOAM-ext.
+
+Package: openfoam-1.6-ext-dev
+Section: libdevel
+Architecture: any
+Depends: openfoam-1.6-ext (= ${binary:Version}), ${misc:Depends}
+Description: openfoam - development files
+ Development files (sources) for OpenFOAM-ext.

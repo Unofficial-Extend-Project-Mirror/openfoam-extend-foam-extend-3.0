@@ -1,0 +1,50 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+MY_P = OpenFOAM-1.6-ext
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/rules/simple-patchsys.mk
+
+clean::
+	rm -rf $(MY_P)
+
+	# Remove existing binaries
+	-find wmake -name dirToString | xargs rm -rf
+	-find wmake -name wmkdep | xargs rm -rf
+
+
+configure/openfoam-1.6-ext:: configure-stamp
+configure-stamp:
+	# Save the original sources
+	-mkdir $(MY_P)
+	-cp -a Allwmake $(MY_P)/
+	-cp -a bin $(MY_P)/
+	-cp -a applications $(MY_P)/
+	-cp -a doc $(MY_P)/
+	-cp -a etc $(MY_P)/
+	-cp -a src $(MY_P)/
+	-cp -a tutorials $(MY_P)/
+	-cp -a wmake $(MY_P)/
+	-cp -a Macros $(MY_P)/doc/Doxygen
+
+	touch $@
+
+build/openfoam-1.6-ext:: build-arch-stamp
+build-arch-stamp:: configure-stamp
+	@export FOAM_INST_DIR=$(CURDIR); \
+		cd $(MY_P); \
+		. etc/bashrc; \
+	./Allwmake
+
+	touch $@
+
+build/openfoam-1.6-ext-doc:: build-indep-stamp
+build-indep-stamp: configure-stamp
+	@export FOAM_INST_DIR=$(CURDIR); \
+		cd $(MY_P); \
+		. etc/bashrc; \
+		cd doc; \
+	./Allwmake
+
+	touch $@

@@ -45,11 +45,11 @@ setenv FOAM_DEV 1
 #
 # Location of FOAM installation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-set foamInstall = $HOME/$WM_PROJECT
+# set foamInstall = $HOME/$WM_PROJECT
 # set foamInstall = ~$WM_PROJECT
 # set foamInstall = /usr/local/$WM_PROJECT
 # set foamInstall = /opt/$WM_PROJECT
-# set foamInstall = /usr/lib
+set foamInstall = /usr/lib
 #
 # END OF (NORMAL) USER EDITABLE PART
 ###############################################################################

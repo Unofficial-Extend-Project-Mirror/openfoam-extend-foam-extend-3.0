@@ -1,0 +1,37 @@
+openfoam-1.6-ext (1.6.0-1ppa1~lucid1) lucid; urgency=low
+
+  * Initial build for lucid.
+
+ -- Oliver Borm <oli.borm@web.de>  Mon, 29 Nov 2010 18:10:26 +0100
+
+openfoam-dev-1.5 (1726-1ppa2~lucid1) lucid; urgency=low
+
+  * Changed build system to cdbs, thanks to Emanuele T. (nuovodna) for the help
+
+ -- Oliver Borm <oli.borm@web.de>  Mon, 17 May 2010 17:28:31 +0200
+
+openfoam-dev-1.5 (1726-1ppa1~lucid1) lucid; urgency=low
+
+  * Fixed tutorials variable
+  * Added postinst/prerm scripts to create and remoce lnInclude dirs
+
+ -- Oliver Borm <oli.borm@web.de>  Mon, 10 May 2010 20:10:22 +0200
+
+openfoam-dev-1.5 (1702-1ppa2~lucid1) lucid; urgency=low
+
+  * Hopefully fixes automatic installation of texlive-binaries / -base
+
+ -- Oliver Borm <oli.borm@web.de>  Mon, 03 May 2010 20:34:22 +0200
+
+openfoam-dev-1.5 (1702-1~ppa1~lucid1) lucid; urgency=low
+
+  * New upstream release
+
+ -- Oliver Borm <oli.borm@web.de>  Thu, 08 Apr 2010 16:10:39 +0200
+
+openfoam-dev-1.5 (2009.04.11-1~ppa1~intrepid1) intrepid; urgency=low
+
+  * Initial release
+
+ -- Oliver Borm <oli.borm@web.de>  Wed, 29 Apr 2009 19:59:08 +0200
+
