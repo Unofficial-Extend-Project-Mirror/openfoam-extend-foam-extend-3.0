@@ -4,7 +4,7 @@ Priority: extra
 Maintainer: Oliver Borm <oli.borm@web.de>
 Build-Depends: cdbs, debhelper (>= 7), binutils-dev, flex, libmgridgen-dev,
  libopenmpi-dev, libparmetis-dev, libreadline-dev, zlib1g-dev, doxygen,
- graphviz, texlive-base, libmesquite-dev
+ graphviz, texlive-base, libmesquite-dev, openmpi-bin
 Standards-Version: 3.9.1
 
 Package: openfoam-1.6-ext

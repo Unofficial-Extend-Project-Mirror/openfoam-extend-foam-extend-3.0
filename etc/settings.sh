@@ -47,7 +47,7 @@ _foamAddLib()
     while [ $# -ge 1 ]
     do
         export LD_LIBRARY_PATH=$1:$LD_LIBRARY_PATH
-	if [ "$WM_ARCH_BASE" == "darwin" ]	    
+	if [ "$WM_ARCH_BASE" = "darwin" ]
 	then
 	    export DYLD_LIBRARY_PATH=$1:$DYLD_LIBRARY_PATH
 	fi

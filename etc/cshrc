@@ -132,7 +132,7 @@ setenv WM_COMPILE_OPTION Opt
 #setenv WM_COMPILE_OPTION Debug
 
 # WM_MPLIB = | OPENMPI | MPICH | MPICH-GM | HPMPI | GAMMA | MPI | QSMPI
-if ( ! $?WM_MPLIB ) setenv WM_MPLIB OPENMPI
+if ( ! $?WM_MPLIB ) setenv WM_MPLIB SYSTEMOPENMPI
 
 
 # Run options (floating-point signal handling and memory initialisation)
