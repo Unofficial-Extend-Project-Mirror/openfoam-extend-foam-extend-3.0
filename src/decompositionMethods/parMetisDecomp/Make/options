@@ -10,5 +10,5 @@ EXE_INC = \
 
 LIB_LIBS = \
     -L$(FOAM_MPI_LIBBIN) \
-    -L$(PARMETIS_DIR)/lib -lmetis \
-    -L$(PARMETIS_DIR)/lib -lparmetis
+    -lmetis \
+    -lparmetis

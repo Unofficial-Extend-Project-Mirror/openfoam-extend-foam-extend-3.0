@@ -19,3 +19,6 @@ git-buildpackage \
 	--git-upstream-branch=master \
 	--git-debian-branch=packaging/ubuntu/${ubuntuVersion} \
 	--git-ignore-new
+
+## build debian source package in pbuilder
+# sudo pbuilder build --pkgname-logfile ../openfoam-1.6-ext_1.6.0-1ppa1~lucid1.dsc
