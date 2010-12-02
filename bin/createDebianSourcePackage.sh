@@ -7,6 +7,12 @@ myTag="1.6-extRelease"
 pushOrigSources="-sa" ## yes
 # pushOrigSources="-sd" ## no
 
+## update branch to the desired tag
+git merge ${myTag}
+
+## or reset branch to the desired tag (this could lead to file losses)
+# git reset --merge ${myTag}
+
 ## create debian changelog for a release
 # git-dch --release
 ## or for a snapshot
