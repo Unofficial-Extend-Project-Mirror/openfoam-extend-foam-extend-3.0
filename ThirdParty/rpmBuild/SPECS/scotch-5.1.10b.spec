@@ -4,7 +4,7 @@
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright held by original author
 #    \\/     M anipulation  |
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
 #
@@ -102,8 +102,9 @@ Patch0:                 scotch-5.1.10b_patch_0
         ln -s Make.inc/Makefile.inc.i686_pc_linux2.shlib Makefile.inc
 %endif
 
-    make scotch
-    make ptscotch
+    [ -z "$WM_NCOMPPROCS" ] && WM_NCOMPPROCS=1
+    make -j $WM_NCOMPPROCS scotch
+    make -j $WM_NCOMPPROCS ptscotch
 
 %install
     cd src
@@ -124,11 +125,13 @@ cat << DOT_SH_EOF > $RPM_BUILD_ROOT/%{_installPrefix}/etc/%{name}-%{version}.sh
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 export SCOTCH_DIR=\$WM_THIRD_PARTY_DIR/packages/%{name}-%{version}/platforms/\$WM_OPTIONS
+export SCOTCH_BIN_DIR=\$SCOTCH_DIR/bin
+export SCOTCH_LIB_DIR=\$SCOTCH_DIR/lib
+export SCOTCH_INCLUDE_DIR=\$SCOTCH_DIR/include
 
-[ -d \$SCOTCH_DIR/lib ] && _foamAddLib \$SCOTCH_DIR/lib
-
-# Enable access to the package applications if present
-[ -d \$SCOTCH_DIR/bin ] && _foamAddPath \$SCOTCH_DIR/bin
+# Enable access to the runtime package applications and libraries
+[ -d \$SCOTCH_BIN_DIR ] && _foamAddPath \$SCOTCH_BIN_DIR
+[ -d \$SCOTCH_LIB_DIR ] && _foamAddLib  \$SCOTCH_LIB_DIR
 DOT_SH_EOF
 
     #
@@ -138,13 +141,16 @@ cat << DOT_CSH_EOF > $RPM_BUILD_ROOT/%{_installPrefix}/etc/%{name}-%{version}.cs
 # Load %{name}-%{version} libraries and binaries if available
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 setenv SCOTCH_DIR \$WM_THIRD_PARTY_DIR/packages/%{name}-%{version}/platforms/\$WM_OPTIONS
+setenv SCOTCH_BIN_DIR \$SCOTCH_DIR/bin
+setenv SCOTCH_LIB_DIR \$SCOTCH_DIR/lib
+setenv SCOTCH_INCLUDE_DIR \$SCOTCH_DIR/include
 
-if ( -e \$SCOTCH_DIR/lib ) then
-    _foamAddLib \$SCOTCH_DIR/lib
+if ( -e \$SCOTCH_BIN_DIR ) then
+    _foamAddPath \$SCOTCH_BIN_DIR
 endif
 
-if ( -e \$SCOTCH_DIR/bin ) then
-    _foamAddPath \$SCOTCH_DIR/bin
+if ( -e \$SCOTCH_LIB_DIR ) then
+    _foamAddLib \$SCOTCH_LIB_DIR
 endif
 DOT_CSH_EOF
 

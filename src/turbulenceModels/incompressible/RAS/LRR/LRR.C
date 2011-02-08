@@ -26,7 +26,6 @@ License
 
 #include "LRR.H"
 #include "addToRunTimeSelectionTable.H"
-#include "wallFvPatch.H"
 
 #include "backwardsCompatibilityWallFunctions.H"
 
@@ -307,7 +306,7 @@ void LRR::correct()
     (
         fvm::ddt(epsilon_)
       + fvm::div(phi_, epsilon_)
-      - fvm::Sp(fvc::div(phi_), epsilon_)
+      + fvm::SuSp(-fvc::div(phi_), epsilon_)
     //- fvm::laplacian(Ceps*(K/epsilon_)*R, epsilon_)
       - fvm::laplacian(DepsilonEff(), epsilon_)
       ==
@@ -331,7 +330,7 @@ void LRR::correct()
     {
         const fvPatch& curPatch = patches[patchi];
 
-        if (isA<wallFvPatch>(curPatch))
+        if (curPatch.isWall())
         {
             forAll(curPatch, facei)
             {
@@ -390,7 +389,7 @@ void LRR::correct()
     {
         const fvPatch& curPatch = patches[patchi];
 
-        if (isA<wallFvPatch>(curPatch))
+        if (curPatch.isWall())
         {
             symmTensorField& Rw = R_.boundaryField()[patchi];
 

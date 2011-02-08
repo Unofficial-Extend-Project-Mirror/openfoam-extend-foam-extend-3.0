@@ -4,7 +4,7 @@
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright held by original author
 #    \\/     M anipulation  |
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
 #
@@ -98,7 +98,9 @@ Group: 			Development/Tools
     ./configure                           \
         -opensource --confirm-license=yes \
         --prefix=%{_installPrefix}
-    make
+
+    [ -z "$WM_NCOMPPROCS" ] && WM_NCOMPPROCS=1
+    make -j $WM_NCOMPPROCS
 
 %install
 #    make install INSTALL_ROOT=$RPM_BUILD_ROOT%{_installPrefix}
@@ -118,11 +120,10 @@ cat << DOT_SH_EOF > $RPM_BUILD_ROOT/%{_installPrefix}/etc/%{name}-%{version}.sh
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 export QT_DIR=\$WM_THIRD_PARTY_DIR/packages/%{name}-%{version}/platforms/\$WM_OPTIONS
+export QT_BIN_DIR=\$QT_DIR/bin
 
-[ -d \$QT_DIR/lib ] && _foamAddLib \$QT_DIR/lib
-
-# Enable access to the package applications if present
-[ -d \$QT_DIR/bin ] && _foamAddPath \$QT_DIR/bin
+# Enable access to the runtime package applications
+[ -d \$QT_BIN_DIR ] && _foamAddPath \$QT_BIN_DIR
 DOT_SH_EOF
 
     #
@@ -132,13 +133,10 @@ cat << DOT_CSH_EOF > $RPM_BUILD_ROOT/%{_installPrefix}/etc/%{name}-%{version}.cs
 # Load %{name}-%{version} libraries and binaries if available
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 setenv QT_DIR \$WM_THIRD_PARTY_DIR/packages/%{name}-%{version}/platforms/\$WM_OPTIONS
+setenv QT_BIN_DIR \$QT_DIR/bin
 
-if ( -e \$QT_DIR/lib ) then
-    _foamAddLib \$QT_DIR/lib
-endif
-
-if ( -e \$QT_DIR/bin ) then
-    _foamAddPath \$QT_DIR/bin
+if ( -e \$QT_BIN_DIR ) then
+    _foamAddPath \$QT_BIN_DIR
 endif
 DOT_CSH_EOF
 

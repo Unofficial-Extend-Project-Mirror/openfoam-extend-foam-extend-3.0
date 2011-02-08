@@ -4,7 +4,7 @@
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright held by original author
 #    \\/     M anipulation  |
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
 #
@@ -98,21 +98,9 @@ Patch1:                 ParMetis-3.1.1.patch
     [ -n "$WM_CXXFLAGS" ]   &&  export CXXFLAGS="$WM_CXXFLAGS"
     [ -n "$WM_LDFLAGS" ]    &&  export LDFLAGS="$WM_LDFLAGS"
 
-# Need to remove this later
-#    if [ "$WM_ARCH" == "darwinIntel" ]
-#    then
-#        ARFLAGS="-dynamiclib -undefined dynamic_lookup"
-#	LIBEXT="dylib"
-#    else
-#        ARFLAGS=""
-#	LIBEXT="so"
-#    fi
-#    make \
-#	AR="gcc $ARFLAGS -shared -o"  \
-#	OPTFLAGS="-O3 -shared"  \
-#	RANLIB="true"
+    [ -z "$WM_NCOMPPROCS" ] && WM_NCOMPPROCS=1
+    make -j $WM_NCOMPPROCS
 
-    make
 
 %install
     # Manual installation
@@ -139,11 +127,14 @@ cat << DOT_SH_EOF > $RPM_BUILD_ROOT/%{_installPrefix}/etc/%{name}-%{version}.sh
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 export PARMETIS_DIR=\$WM_THIRD_PARTY_DIR/packages/%{name}-%{version}/platforms/\$WM_OPTIONS
+export PARMETIS_BIN_DIR=\$PARMETIS_DIR/bin
+export PARMETIS_LIB_DIR=\$PARMETIS_DIR/lib
+export PARMETIS_INCLUDE_DIR=\$PARMETIS_DIR/include
 
-[ -d \$PARMETIS_DIR/lib ] && _foamAddLib \$PARMETIS_DIR/lib
+# Enable access to the runtime package applications and libraries
+[ -d \$PARMETIS_BIN_DIR ] && _foamAddPath \$PARMETIS_BIN_DIR
+[ -d \$PARMETIS_LIB_DIR ] && _foamAddLib  \$PARMETIS_LIB_DIR
 
-# Enable access to the package applications if present
-[ -d \$PARMETIS_DIR/bin ] && _foamAddPath \$PARMETIS_DIR/bin
 DOT_SH_EOF
 
     #
@@ -153,13 +144,16 @@ cat << DOT_CSH_EOF > $RPM_BUILD_ROOT/%{_installPrefix}/etc/%{name}-%{version}.cs
 # Load %{name}-%{version} libraries and binaries if available
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 setenv PARMETIS_DIR \$WM_THIRD_PARTY_DIR/packages/%{name}-%{version}/platforms/\$WM_OPTIONS
+setenv PARMETIS_BIN_DIR \$PARMETIS_DIR/bin
+setenv PARMETIS_LIB_DIR \$PARMETIS_DIR/lib
+setenv PARMETIS_INCLUDE_DIR \$PARMETIS_DIR/include
 
-if ( -e \$PARMETIS_DIR/lib ) then
-    _foamAddLib \$PARMETIS_DIR/lib
+if ( -e \$PARMETIS_BIN_DIR ) then
+    _foamAddPath \$PARMETIS_BIN_DIR
 endif
 
-if ( -e \$PARMETIS_DIR/bin ) then
-    _foamAddPath \$PARMETIS_DIR/bin
+if ( -e \$PARMETIS_LIB_DIR ) then
+    _foamAddLib \$PARMETIS_LIB_DIR
 endif
 DOT_CSH_EOF
 

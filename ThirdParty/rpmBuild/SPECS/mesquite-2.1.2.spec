@@ -4,7 +4,7 @@
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright held by original author
 #    \\/     M anipulation  |
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
 #
@@ -91,7 +91,6 @@ Group: 			Development/Tools
     [ -n "$WM_CXXFLAGS" ]   &&  export CXXFLAGS="$WM_CXXFLAGS"
     [ -n "$WM_LDFLAGS" ]    &&  export LDFLAGS="$WM_LDFLAGS"
 
-    GMP_VERSION=gmp-5.0.1
     ./configure     \
         --prefix=%{_installPrefix}  \
 	--enable-release            \
@@ -104,7 +103,12 @@ Group: 			Development/Tools
 	--enable-trap-fpe           \
 	--disable-function-timers
 
-    make
+    # Remove the file include/Mesquite_all_headers.hpp
+    # This file will be regenerated during the compilation process
+    [ -e include/Mesquite_all_headers.hpp ] && rm -f include/Mesquite_all_headers.hpp
+
+    [ -z "$WM_NCOMPPROCS" ] && WM_NCOMPPROCS=1
+    make -j $WM_NCOMPPROCS
 
 %install
     make install prefix=$RPM_BUILD_ROOT%{_installPrefix}
@@ -123,11 +127,13 @@ cat << DOT_SH_EOF > $RPM_BUILD_ROOT/%{_installPrefix}/etc/%{name}-%{version}.sh
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 export MESQUITE_DIR=\$WM_THIRD_PARTY_DIR/packages/%{name}-%{version}/platforms/\$WM_OPTIONS
+export MESQUITE_BIN_DIR=\$MESQUITE_DIR/bin
+export MESQUITE_LIB_DIR=\$MESQUITE_DIR/lib
+export MESQUITE_INCLUDE_DIR=\$MESQUITE_DIR/include
 
-[ -d \$MESQUITE_DIR/lib ] && _foamAddLib \$MESQUITE_DIR/lib
-
-# Enable access to the package applications if present
-[ -d \$MESQUITE_DIR/bin ] && _foamAddPath \$MESQUITE_DIR/bin
+# Enable access to the package runtime applications and libraries
+[ -d \$MESQUITE_BIN_DIR ] && _foamAddPath \$MESQUITE_BIN_DIR
+[ -d \$MESQUITE_LIB_DIR ] && _foamAddLib  \$MESQUITE_LIB_DIR
 DOT_SH_EOF
 
     #
@@ -137,13 +143,16 @@ cat << DOT_CSH_EOF > $RPM_BUILD_ROOT/%{_installPrefix}/etc/%{name}-%{version}.cs
 # Load %{name}-%{version} libraries and binaries if available
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 setenv MESQUITE_DIR \$WM_THIRD_PARTY_DIR/packages/%{name}-%{version}/platforms/\$WM_OPTIONS
+setenv MESQUITE_BIN_DIR \$MESQUITE_DIR/bin
+setenv MESQUITE_LIB_DIR \$MESQUITE_DIR/lib
+setenv MESQUITE_INCLUDE_DIR \$MESQUITE_DIR/include
 
-if ( -e \$MESQUITE_DIR/lib ) then
-    _foamAddLib \$MESQUITE_DIR/lib
+if ( -e \$MESQUITE_BIN_DIR ) then
+    _foamAddPath \$MESQUITE_BIN_DIR
 endif
 
-if ( -e \$MESQUITE_DIR/bin ) then
-    _foamAddPath \$MESQUITE_DIR/bin
+if ( -e \$MESQUITE_LIB_DIR ) then
+    _foamAddLib \$MESQUITE_LIB_DIR
 endif
 DOT_CSH_EOF
 
