@@ -3,7 +3,7 @@
 # TODO: checkout correct tag
 GPGKey=${1}
 ubuntuVersion="10.04"
-myTag="1.6-extRelease"
+myTag="0c3137b5"
 pushOrigSources="-sa" ## yes
 # pushOrigSources="-sd" ## no
 
