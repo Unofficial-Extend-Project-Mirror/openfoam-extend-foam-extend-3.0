@@ -1,7 +1,7 @@
 #!/bin/sh
 #set -x
 
-for name in `ls openfoam-1.6-ext/usr/lib/OpenFOAM-1.6-ext/applications/bin/`; do
+for name in `ls openfoam-1.6-ext-debug/usr/lib/OpenFOAM-1.6-ext-debug/applications/bin/`; do
 
 manname=`echo -n ${name}.1`
 cat > $manname <<EOF

@@ -1,3 +1,9 @@
+openfoam-1.6-ext-debug (1.6.0-2ppa1~lucid1) lucid; urgency=low
+
+  * Try to build a separate debug package
+
+ -- Bernhard Gschaider <bgschaid@ice-sf.at>  Mon, 16 May 2011 18:07:26 +0100
+
 openfoam-1.6-ext (1.6.0-1ppa1~lucid1) lucid; urgency=low
 
   * Initial build for lucid.

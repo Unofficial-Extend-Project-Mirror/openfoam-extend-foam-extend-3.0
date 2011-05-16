@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 
-MY_P = OpenFOAM-1.6-ext
+MY_P = OpenFOAM-1.6-ext-debug
 
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/rules/simple-patchsys.mk
@@ -14,7 +14,7 @@ clean::
 	-find wmake -name wmkdep | xargs rm -rf
 
 
-configure/openfoam-1.6-ext:: configure-stamp
+configure/openfoam-1.6-ext-debug:: configure-stamp
 configure-stamp:
 	# Save the original sources
 	-mkdir $(MY_P)
@@ -30,18 +30,20 @@ configure-stamp:
 
 	touch $@
 
-build/openfoam-1.6-ext:: build-arch-stamp
+build/openfoam-1.6-ext-debug:: build-arch-stamp
 build-arch-stamp:: configure-stamp
 	@export FOAM_INST_DIR=$(CURDIR); \
+	@export WM_COMPILE_OPTION=Debug; \
 		cd $(MY_P); \
 		. etc/bashrc; \
 	./Allwmake
 
 	touch $@
 
-build/openfoam-1.6-ext-doc:: build-indep-stamp
+build/openfoam-1.6-ext-debug-doc:: build-indep-stamp
 build-indep-stamp: configure-stamp
 	@export FOAM_INST_DIR=$(CURDIR); \
+	@export WM_COMPILE_OPTION=Debug; \
 		cd $(MY_P); \
 		. etc/bashrc; \
 		cd doc; \

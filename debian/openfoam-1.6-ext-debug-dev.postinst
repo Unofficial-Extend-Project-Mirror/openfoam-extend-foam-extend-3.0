@@ -1,0 +1,4 @@
+#!/bin/sh
+set -e
+
+. /usr/lib/OpenFOAM-1.6-ext-debug/etc/bashrc; wmakeLnIncludeAll /usr/lib/OpenFOAM-1.6-ext-debug

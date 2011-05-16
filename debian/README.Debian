@@ -1,10 +1,10 @@
-openfoam-1.6-ext for Debian
+openfoam-1.6-ext-debug for Debian
 ---------------------------
 
 In order to set the OpenFOAM paths correctly, you should add this line
 to your ~/.bashrc
 
-alias startOF16ext="source /usr/lib/OpenFOAM-1.6-ext/etc/bashrc"
+alias startOF16ext="source /usr/lib/OpenFOAM-1.6-ext-debug/etc/bashrc"
 
 and each time you want to use OpenFOAM you have to execute "startOF1ext".
 
