@@ -1,3 +1,9 @@
+openfoam-1.6-ext-debug (1.6.0-3ppa1~lucid1) lucid; urgency=low
+
+  * New version number to make launchpad happy
+
+ -- Bernhard Gschaider <bgschaid@ice-sf.at>  Tue, 17 May 2011 00:14:26 +0100
+
 openfoam-1.6-ext-debug (1.6.0-2ppa1~lucid1) lucid; urgency=low
 
   * Try to build a separate debug package
