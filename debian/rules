@@ -33,7 +33,7 @@ configure-stamp:
 build/openfoam-1.6-ext-debug:: build-arch-stamp
 build-arch-stamp:: configure-stamp
 	@export FOAM_INST_DIR=$(CURDIR); \
-	@export WM_COMPILE_OPTION=Debug; \
+	export WM_COMPILE_OPTION=Debug; \
 		cd $(MY_P); \
 		. etc/bashrc; \
 	./Allwmake
@@ -43,7 +43,7 @@ build-arch-stamp:: configure-stamp
 build/openfoam-1.6-ext-debug-doc:: build-indep-stamp
 build-indep-stamp: configure-stamp
 	@export FOAM_INST_DIR=$(CURDIR); \
-	@export WM_COMPILE_OPTION=Debug; \
+	export WM_COMPILE_OPTION=Debug; \
 		cd $(MY_P); \
 		. etc/bashrc; \
 		cd doc; \
