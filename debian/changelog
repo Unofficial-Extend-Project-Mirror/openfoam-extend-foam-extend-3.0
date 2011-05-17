@@ -1,3 +1,9 @@
+openfoam-1.6-ext-debug (1.6.0-5ppa1~lucid1) lucid; urgency=low
+
+  * Now the scotchlibrary should be found
+
+ -- Bernhard Gschaider <bgschaid@ice-sf.at>  Tue, 17 May 2011 21:05:42 +0100
+
 openfoam-1.6-ext-debug (1.6.0-4ppa1~lucid1) lucid; urgency=low
 
   * There must be way without bumping up the version number, but I can't find it
