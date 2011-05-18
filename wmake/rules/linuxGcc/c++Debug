@@ -1,3 +1,3 @@
 # c++DBUG    = -ggdb3 -DFULLDEBUG
 c++DBUG    = -ggdb -DFULLDEBUG
-c++OPT      = -O0 -fdefault-inline -L$(FOAM_MPI_LIBBIN) -lPstream
+c++OPT      = -O0 -fdefault-inline
