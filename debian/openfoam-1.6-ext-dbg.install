@@ -1,0 +1,5 @@
+OpenFOAM-1.6-ext-dbg/bin			usr/lib/OpenFOAM-1.6-ext-dbg
+OpenFOAM-1.6-ext-dbg/etc			usr/lib/OpenFOAM-1.6-ext-dbg
+OpenFOAM-1.6-ext-dbg/applications/bin	        usr/lib/OpenFOAM-1.6-ext-dbg/applications
+OpenFOAM-1.6-ext-dbg/lib			usr/lib/OpenFOAM-1.6-ext-dbg
+OpenFOAM-1.6-ext-dbg/wmake			usr/lib/OpenFOAM-1.6-ext-dbg

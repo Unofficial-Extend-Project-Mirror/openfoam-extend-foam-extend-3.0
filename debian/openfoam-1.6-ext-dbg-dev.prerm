@@ -1,0 +1,4 @@
+#!/bin/sh
+set -e
+
+. /usr/lib/OpenFOAM-1.6-ext-dbg/etc/bashrc; wcleanLnIncludeAll /usr/lib/OpenFOAM-1.6-ext-dbg

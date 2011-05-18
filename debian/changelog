@@ -1,3 +1,9 @@
+openfoam-1.6-ext-dbg (1.6.0-2ppa1~lucid1) lucid; urgency=low
+
+  * Renamed package for good
+
+ -- Bernhard Gschaider <bgschaid@ice-sf.at>  Wed, 18 May 2011 16:57:42 +0100
+
 openfoam-1.6-ext-debug (1.6.0-5ppa1~lucid1) lucid; urgency=low
 
   * Now the scotchlibrary should be found
