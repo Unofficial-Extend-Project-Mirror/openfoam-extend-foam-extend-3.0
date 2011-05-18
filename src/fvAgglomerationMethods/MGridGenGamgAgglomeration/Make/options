@@ -7,8 +7,7 @@ TYPE_REAL=-DTYPE_REAL
 
 EXE_INC = \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
-    -I$(PARMGRIDGEN_INCLUDE_DIR)/Lib    \
-    -I$(PARMGRIDGEN_INCLUDE_DIR)/IMlib  \
+    -I/usr/include/mgridgen \
     $(TYPE_REAL)
 
 LIB_LIBS = \
