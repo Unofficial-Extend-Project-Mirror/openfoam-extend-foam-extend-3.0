@@ -2,7 +2,7 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2004-6 H. Jasak All rights reserved
+    \\  /    A nd           | Copyright held by original author
      \\/     M anipulation  |
 -------------------------------------------------------------------------------
 License
@@ -20,88 +20,36 @@ License
 
     You should have received a copy of the GNU General Public License
     along with OpenFOAM; if not, write to the Free Software Foundation,
-    Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-
-Class
-    BlockLduMatrix
-
-Description
-    Template specialisation for tensor block matrix
-
-Author
-    Hrvoje Jasak, Wikki Ltd.  All rights reserved.
-
-SourceFiles
-    tensorBlockLduMatrix.C
+    Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef tensorBlockLduMatrix_H
-#define tensorBlockLduMatrix_H
-
-#include "BlockLduMatrix.H"
+#include "fixedGradientFvPatchVectorNFields.H"
+#include "addToRunTimeSelectionTable.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-template<>
-void BlockLduMatrix<tensor>::sumDiag();
+// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
-template<>
-void BlockLduMatrix<tensor>::negSumDiag();
+#define doMakePatchTypeField(type, Type, args...)                           \
+    makePatchTypeField(fvPatch##Type##Field, fixedGradientFvPatch##Type##Field);
 
-template<>
-void BlockLduMatrix<tensor>::check() const;
+forAllVectorNTypes(doMakePatchTypeField)
 
-template<>
-void BlockLduMatrix<tensor>::relax
-(
-    const tensorField& x,
-    tensorField& b,
-    const scalar alpha
-);
+forAllTensorNTypes(doMakePatchTypeField)
 
-template<>
-void BlockLduMatrix<tensor>::operator*=(const scalarField& sf);
+forAllDiagTensorNTypes(doMakePatchTypeField)
 
-template<>
-void BlockLduMatrix<tensor>::AmulCore
-(
-    tensorField& mul,
-    const tensorField& x
-) const;
-
-template<>
-void BlockLduMatrix<tensor>::TmulCore
-(
-    tensorField& mul,
-    const tensorField& x
-) const;
-
-template<>
-void BlockLduMatrix<tensor>::segregateB
-(
-    tensorField& mul,
-    const tensorField& x
-) const;
+forAllSphericalTensorNTypes(doMakePatchTypeField)
 
 
-template<>
-tmp<tensorField> BlockLduMatrix<tensor>::H(const tensorField& x) const;
-
-template<>
-tmp<tensorField> BlockLduMatrix<tensor>::faceH(const tensorField& x) const;
-
-
+#undef doMakePatchTypeField
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //
