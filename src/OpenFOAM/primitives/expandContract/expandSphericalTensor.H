@@ -23,54 +23,72 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Description
-    Global functions for expansion and contraction of tensor field
+    Global functions for expansion and contraction of tensor coefficient
     to diagonal type
 
 Author
-    Hrvoje Jasak, Wikki Ltd.  All rights reserved
-
-SourceFiles
-    expandTensorField.C
+    Ivor Clifford <ivor.clifford@psu.edu>
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef expandTensorField_H
-#define expandTensorField_H
+#ifndef expandSphericalTensor_H
+#define expandSphericalTensor_H
 
-#include "tensorField.H"
-#include "diagTensorField.H"
-#include "sphericalTensorField.H"
+#include "SphericalTensor.H"
 
-#define TEMPLATE
-#include "FieldFunctionsM.H"
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-// * * * * * * * * * * * * * * * Global Functions  * * * * * * * * * * * * * //
+//- Return the diagonal of a diagonal tensor as a scalar
+template <class Cmpt>
+inline void contractScalar(Cmpt& result, const SphericalTensor<Cmpt>& t)
+{
+    result = t.ii();
+}
 
-void contractScalar(Field<scalar>& res, const UList<tensor>& f);
-void contractScalar(Field<scalar>& res, const UList<diagTensor>& f);
-void contractScalar(Field<scalar>& res, const UList<sphericalTensor>& f);
 
-void contractLinear(Field<vector>& res, const UList<tensor>& f);
-void contractLinear(Field<vector>& res, const UList<diagTensor>& f);
+//- Return the diagonal of a diagonal tensor as a scalar
+template <class Cmpt>
+inline Cmpt contractScalar(const SphericalTensor<Cmpt>& t)
+{
+    Cmpt result;
+    contractScalar(result, t);
+    return result;
+}
 
-void expandScalar(Field<vector>& res, const UList<scalar>& f);
 
-void expandScalar(Field<tensor>& res, const UList<scalar>& f);
-void expandScalar(Field<diagTensor>& res, const UList<scalar>& f);
-void expandScalar(Field<sphericalTensor>& res, const UList<scalar>& f);
+//- Return the diagonal of a diagonal as a vector
+template <class Cmpt>
+inline void contractLinear(Vector<Cmpt>& result, const SphericalTensor<Cmpt>& t)
+{
+    result = Vector<Cmpt>(t.ii());
+}
 
-void expandLinear(Field<tensor>& res, const UList<vector>& f);
-void expandLinear(Field<diagTensor>& res, const UList<vector>& f);
+
+//- Return the diagonal of a diagonal tensor as a vector
+template <class Cmpt>
+inline Vector<Cmpt> contractLinear(const SphericalTensor<Cmpt>& t)
+{
+    Vector<Cmpt> result;
+    contractLinear(result, t);
+    return result;
+}
+
+
+//- Return the tensor given a scalar
+template <class Cmpt>
+inline void expandScalar(SphericalTensor<Cmpt>& result, const Cmpt& v)
+{
+    result = SphericalTensor<Cmpt>(v);
+}
+
 
 } // End namespace Foam
 
-#endif
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "undefFieldFunctionsM.H"
+#endif
 
 // ************************************************************************* //

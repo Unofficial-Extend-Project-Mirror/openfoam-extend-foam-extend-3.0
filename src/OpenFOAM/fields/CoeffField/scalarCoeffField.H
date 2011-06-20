@@ -89,7 +89,12 @@ public:
             scalarField(is)
         {}
 
-
+        //- Clone
+        tmp<CoeffField<scalar> > clone() const
+        {
+            return tmp<CoeffField<scalar> >(new CoeffField<scalar>(*this));
+        }
+        
     // Member functions
 
         //- Return active type
