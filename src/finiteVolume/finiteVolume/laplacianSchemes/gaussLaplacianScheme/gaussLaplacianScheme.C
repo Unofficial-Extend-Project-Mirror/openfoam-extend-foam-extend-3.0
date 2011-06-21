@@ -74,7 +74,15 @@ gaussLaplacianScheme<Type, GType>::fvmLaplacianUncorrected
             gammaMagSf.boundaryField()[patchI];
 
         fvm.internalCoeffs()[patchI] = patchGamma*psf.gradientInternalCoeffs();
-        fvm.boundaryCoeffs()[patchI] = -patchGamma*psf.gradientBoundaryCoeffs();
+        
+        if (psf.coupled())
+        {
+            fvm.boundaryCoeffs()[patchI] = -patchGamma*psf.gradientUpperCoeffs();
+        }
+        else
+        {
+            fvm.boundaryCoeffs()[patchI] = -patchGamma*psf.gradientBoundaryCoeffs();
+        }
     }
 
     return tfvm;

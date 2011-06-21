@@ -394,6 +394,36 @@ public:
                 return *this;
             }
 
+            //- Return the matrix coupled upper coefficients corresponding to the
+            //  evaluation of the value of this patchField with given weights
+            virtual tmp<Field<Type> > valueUpperCoeffs
+            (
+                const tmp<Field<scalar> >&
+            ) const
+            {
+                notImplemented
+                (
+                    type()
+                  + "::valueUpperCoeffs(const tmp<Field<scalar> >&)"
+                );
+                return *this;
+            }
+
+            //- Return the matrix coupled lower coefficients corresponding to the
+            //  evaluation of the value of this patchField with given weights
+            virtual tmp<Field<Type> > valueLowerCoeffs
+            (
+                const tmp<Field<scalar> >&
+            ) const
+            {
+                notImplemented
+                (
+                    type()
+                  + "::valueUpperCoeffs(const tmp<Field<scalar> >&)"
+                );
+                return *this;
+            }
+
             //- Return the matrix diagonal coefficients corresponding to the
             //  evaluation of the gradient of this patchField
             virtual tmp<Field<Type> > gradientInternalCoeffs() const
@@ -410,6 +440,21 @@ public:
                 return *this;
             }
 
+            //- Return the matrix coupled upper coefficients corresponding to the
+            //  evaluation of the gradient of this patchField
+            virtual tmp<Field<Type> > gradientUpperCoeffs() const
+            {
+                notImplemented(type() + "::gradientUpperCoeffs()");
+                return *this;
+            }
+
+            //- Return the matrix coupled lower coefficients corresponding to the
+            //  evaluation of the gradient of this patchField
+            virtual tmp<Field<Type> > gradientLowerCoeffs() const
+            {
+                notImplemented(type() + "::gradientLowerCoeffs()");
+                return *this;
+            }
 
             //- Manipulate matrix
             virtual void manipulateMatrix(fvMatrix<Type>& matrix);
