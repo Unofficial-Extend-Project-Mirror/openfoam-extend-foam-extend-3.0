@@ -167,6 +167,20 @@ public:
                 const tmp<scalarField>&
             ) const;
 
+            //- Return the matrix coupled upper coefficients corresponding to the
+            //  evaluation of the value of this patchField with given weights
+            virtual tmp<Field<Type> > valueUpperCoeffs
+            (
+                const tmp<Field<scalar> >&
+            ) const;
+
+            //- Return the matrix coupled lower coefficients corresponding to the
+            //  evaluation of the value of this patchField with given weights
+            virtual tmp<Field<Type> > valueLowerCoeffs
+            (
+                const tmp<Field<scalar> >&
+            ) const;
+
             //- Return the matrix diagonal coefficients corresponding to the
             //  evaluation of the gradient of this patchField
             virtual tmp<Field<Type> > gradientInternalCoeffs() const;
@@ -175,6 +189,13 @@ public:
             //  evaluation of the gradient of this patchField
             virtual tmp<Field<Type> > gradientBoundaryCoeffs() const;
 
+            //- Return the matrix coupled upper coefficients corresponding to the
+            //  evaluation of the gradient of this patchField
+            virtual tmp<Field<Type> > gradientUpperCoeffs() const;
+
+            //- Return the matrix coupled lower coefficients corresponding to the
+            //  evaluation of the gradient of this patchField
+           virtual tmp<Field<Type> > gradientLowerCoeffs() const;
 
         // Coupled interface functionality
 

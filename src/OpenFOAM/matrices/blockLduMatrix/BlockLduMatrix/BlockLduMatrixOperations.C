@@ -806,7 +806,11 @@ void Foam::BlockLduMatrix<Type>::negate()
         diagPtr_->negate();
     }
 
+    source_.negate();
+    
     // Do coupling coefficients
+    interfaceDiag_.negate();
+    interfaceSource_.negate();
     coupleUpper_.negate();
     coupleLower_.negate();
 }
@@ -853,8 +857,12 @@ void Foam::BlockLduMatrix<Type>::operator=(const BlockLduMatrix<Type>& A)
         diag() = A.diag();
     }
 
+    source_ = A.source_;
+    
     // Copy interface data
     interfaces_ = A.interfaces_;
+    interfaceDiag_ = A.interfaceDiag_;
+    interfaceSource_ = A.interfaceSource_;
     coupleUpper_ = A.coupleUpper_;
     coupleLower_ = A.coupleLower_;
 
@@ -888,7 +896,11 @@ void Foam::BlockLduMatrix<Type>::operator+=(const BlockLduMatrix<Type>& A)
         lower() += A.lower();
     }
 
+    source_ += A.source_;
+    
     // Interface data
+    interfaceDiag_ += A.interfaceDiag_;
+    interfaceSource_ += A.interfaceSource_;
     coupleUpper_ += A.coupleUpper_;
     coupleLower_ += A.coupleLower_;
 }
@@ -919,7 +931,11 @@ void Foam::BlockLduMatrix<Type>::operator-=(const BlockLduMatrix<Type>& A)
         lower() -= A.lower();
     }
 
+    source_ -= A.source_;
+    
     // Interface data
+    interfaceDiag_ -= A.interfaceDiag_;
+    interfaceSource_ -= A.interfaceSource_;
     coupleUpper_ -= A.coupleUpper_;
     coupleLower_ -= A.coupleLower_;
 }
@@ -934,9 +950,10 @@ void Foam::BlockLduMatrix<Type>::operator*=(const scalarField& sf)
 
     //HJ Missing code: add coupling coefficients op*=
     //   HJ, 21/Feb/2008
-    // IC - Complicated because we have to scale across the interfaces
-    // We may need to include this functionality in lduInterfaceField
-    // as additional initInterfaceScale and scaleInterface functions
+    // Ivor Clifford - Complicated because we have to scale across the
+    // interfaces. We may need to include this functionality in
+    // lduInterfaceField as additional initInterfaceScale and
+    // scaleInterface functions
 
     if (diagPtr_)
     {
@@ -1012,6 +1029,8 @@ void Foam::BlockLduMatrix<Type>::operator*=(const scalarField& sf)
             }
         }
     }
+    
+    source_ *= sf;
 }
 
 
@@ -1033,7 +1052,11 @@ void Foam::BlockLduMatrix<Type>::operator*=(const scalar s)
         *lowerPtr_ *= s;
     }
 
+    source_ *= s;
+    
     // Interface data
+    interfaceDiag_ *= s;
+    interfaceSource_ *= s;
     coupleUpper_ *= s;
     coupleLower_ *= s;
 }

@@ -96,7 +96,15 @@ gaussConvectionScheme<Type>::fvmDiv
         const fvsPatchScalarField& pw = weights.boundaryField()[patchI];
 
         fvm.internalCoeffs()[patchI] = patchFlux*psf.valueInternalCoeffs(pw);
-        fvm.boundaryCoeffs()[patchI] = -patchFlux*psf.valueBoundaryCoeffs(pw);
+        
+        if(psf.coupled())
+        {
+            fvm.boundaryCoeffs()[patchI] = -patchFlux*psf.valueUpperCoeffs(pw);
+        }
+        else
+        {
+            fvm.boundaryCoeffs()[patchI] = -patchFlux*psf.valueBoundaryCoeffs(pw);
+        }
     }
 
     if (tinterpScheme_().corrected())

@@ -163,9 +163,26 @@ tmp<Field<Type> > coupledFvPatchField<Type>::valueBoundaryCoeffs
     const tmp<scalarField>& w
 ) const
 {
+    return tmp<Field<Type> >(new Field<Type>(this->size(), pTraits<Type>::zero));
+}
+
+template<class Type>
+tmp<Field<Type> > coupledFvPatchField<Type>::valueUpperCoeffs
+(
+    const tmp<scalarField>& w
+) const
+{
     return Type(pTraits<Type>::one)*(1.0 - w);
 }
 
+template<class Type>
+tmp<Field<Type> > coupledFvPatchField<Type>::valueLowerCoeffs
+(
+    const tmp<scalarField>& w
+) const
+{
+    return this->valueInternalCoeffs(w);
+}
 
 template<class Type>
 tmp<Field<Type> > coupledFvPatchField<Type>::gradientInternalCoeffs() const
@@ -177,9 +194,20 @@ tmp<Field<Type> > coupledFvPatchField<Type>::gradientInternalCoeffs() const
 template<class Type>
 tmp<Field<Type> > coupledFvPatchField<Type>::gradientBoundaryCoeffs() const
 {
+    return tmp<Field<Type> >(new Field<Type>(this->size(), pTraits<Type>::zero));
+}
+
+template<class Type>
+tmp<Field<Type> > coupledFvPatchField<Type>::gradientUpperCoeffs() const
+{
     return -this->gradientInternalCoeffs();
 }
 
+template<class Type>
+tmp<Field<Type> > coupledFvPatchField<Type>::gradientLowerCoeffs() const
+{
+    return -this->gradientInternalCoeffs();
+}
 
 template<class Type>
 void coupledFvPatchField<Type>::write(Ostream& os) const

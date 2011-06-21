@@ -109,18 +109,26 @@ private:
             //- Lower triangle coefficients
             CoeffField<Type> *lowerPtr_;
 
-
+            //- Source vector
+            Field<Type> source_;
+            
         // Coupling
 
             //- List of coupled interfaces
             typename BlockLduInterfaceFieldPtrsList<Type>::Type interfaces_;
+
+            //- Interface coefficients, diagonal
+            FieldField<CoeffField, Type> interfaceDiag_;
+
+            //- Interface source term contribution
+            FieldField<Field, Type> interfaceSource_;
 
             //- Coupled interface coefficients, upper
             FieldField<CoeffField, Type> coupleUpper_;
 
             //- Coupled interface coefficients, lower
             FieldField<CoeffField, Type> coupleLower_;
-
+            
 
         // Constraints
 
@@ -273,6 +281,42 @@ public:
             //- Return lower coefficients
             const TypeCoeffField& lower() const;
 
+            //- Return access to source vector
+            Field<Type>& source()
+            {
+                return source_;
+            }
+
+            //- Return source vector
+            const Field<Type>& source() const
+            {
+                return source_;
+            }
+
+            //- Return access to coupled interface coefficients, diagonal
+            FieldField<CoeffField, Type>& interfaceDiag()
+            {
+                return interfaceDiag_;
+            }
+
+            //- Return coupled interface coefficients, diagonal
+            const FieldField<CoeffField, Type>& interfaceDiag() const
+            {
+                return interfaceDiag_;
+            }
+
+            //- Return coupled interface source
+            FieldField<Field, Type>& interfaceSource()
+            {
+                return interfaceSource_;
+            }
+
+            //- Return coupled interface source
+            const FieldField<Field, Type>& interfaceSource() const
+            {
+                return interfaceSource_;
+            }
+
             //- Return access to coupled interface coefficients, upper
             FieldField<CoeffField, Type>& coupleUpper()
             {
@@ -296,12 +340,12 @@ public:
             {
                 return coupleLower_;
             }
-			
-			//- Access to coupled interfaces
-			typename BlockLduInterfaceFieldPtrsList<Type>::Type& interfaces()
-			{
-				return interfaces_;
-			}
+            
+            //- Access to coupled interfaces
+            typename BlockLduInterfaceFieldPtrsList<Type>::Type& interfaces()
+            {
+                return interfaces_;
+            }
 
 
         // Matrix structure

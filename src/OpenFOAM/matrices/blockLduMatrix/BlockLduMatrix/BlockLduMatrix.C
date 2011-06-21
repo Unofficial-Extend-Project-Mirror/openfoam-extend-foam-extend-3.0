@@ -54,7 +54,10 @@ Foam::BlockLduMatrix<Type>::BlockLduMatrix(const lduMesh& ldu)
     diagPtr_(NULL),
     upperPtr_(NULL),
     lowerPtr_(NULL),
+    source_(lduAddr().size(), pTraits<Type>::zero),
     interfaces_(ldu.interfaces().size()),
+    interfaceDiag_(ldu.lduAddr().nPatches()),
+    interfaceSource_(ldu.lduAddr().nPatches()),
     coupleUpper_(ldu.lduAddr().nPatches()),
     coupleLower_(ldu.lduAddr().nPatches()),
     fixedEqns_(ldu.lduAddr().size()/fixFillIn)
@@ -63,6 +66,8 @@ Foam::BlockLduMatrix<Type>::BlockLduMatrix(const lduMesh& ldu)
 
     forAll (coupleUpper_, i)
     {
+        interfaceDiag_.set(i, new CoeffField<Type>(addr.patchAddr(i).size()));
+        interfaceSource_.set(i, new Field<Type>(addr.patchAddr(i).size(), pTraits<Type>::zero));
         coupleUpper_.set(i, new CoeffField<Type>(addr.patchAddr(i).size()));
         coupleLower_.set(i, new CoeffField<Type>(addr.patchAddr(i).size()));
     }
@@ -77,7 +82,10 @@ Foam::BlockLduMatrix<Type>::BlockLduMatrix(const BlockLduMatrix<Type>& A)
     diagPtr_(NULL),
     upperPtr_(NULL),
     lowerPtr_(NULL),
+    source_(A.source_),
     interfaces_(A.interfaces_),
+    interfaceDiag_(A.interfaceDiag_),
+    interfaceSource_(A.interfaceSource_),
     coupleUpper_(A.coupleUpper_),
     coupleLower_(A.coupleLower_),
     fixedEqns_(A.fixedEqns_)
@@ -109,7 +117,10 @@ Foam::BlockLduMatrix<Type>::BlockLduMatrix(BlockLduMatrix<Type>& A, bool reUse)
     diagPtr_(NULL),
     upperPtr_(NULL),
     lowerPtr_(NULL),
+    source_(A.source_, reUse),
     interfaces_(A.interfaces_, reUse),
+    interfaceDiag_(A.interfaceDiag_, reUse),
+    interfaceSource_(A.interfaceSource_, reUse),
     coupleUpper_(A.coupleUpper_, reUse),
     coupleLower_(A.coupleLower_, reUse),
     fixedEqns_(A.fixedEqns_)
@@ -373,11 +384,17 @@ Foam::Ostream& Foam::operator<<(Ostream& os, const BlockLduMatrix<Type>& ldum)
         os.writeKeyword("lower")  << typename BlockLduMatrix<Type>::TypeCoeffField
             (ldum.lduAddr().lowerAddr().size()) <<  token::END_STATEMENT << nl;
     }
-	
-	os.writeKeyword("coupleUpper") << ldum.coupleUpper_ << token::END_STATEMENT << endl;
-	
-	os.writeKeyword("coupleLower") << ldum.coupleLower_ << token::END_STATEMENT << endl;
-	
+    
+    os.writeKeyword("source") << ldum.source_ << token::END_STATEMENT << endl;
+
+    os.writeKeyword("interfaceDiag") << ldum.interfaceDiag_ << token::END_STATEMENT << endl;
+
+    os.writeKeyword("interfaceSource") << ldum.interfaceSource_ << token::END_STATEMENT << endl;
+
+    os.writeKeyword("coupleUpper") << ldum.coupleUpper_ << token::END_STATEMENT << endl;
+    
+    os.writeKeyword("coupleLower") << ldum.coupleLower_ << token::END_STATEMENT << endl;
+
     os.check("Ostream& operator<<(Ostream&, const BlockLduMatrix<Type>&");
 
     return os;
