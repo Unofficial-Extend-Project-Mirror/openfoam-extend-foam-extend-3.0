@@ -1,0 +1,13 @@
+blockFvMatrices/blockFvMatrices.C
+blockFvMatrices/blockFvScalarMatrix/blockFvScalarMatrix.C
+
+finiteVolume/blockFvm/blockFvmSup/blockFvmScalarSup.C
+finiteVolume/blockFvm/blockFvmSup/blockFvmVectorSup.C
+
+finiteVolume/ddtSchemes/blockDdtScheme/blockDdtSchemes.C
+finiteVolume/ddtSchemes/EulerBlockDdtScheme/EulerBlockDdtSchemes.C
+
+finiteVolume/laplacianSchemes/blockLaplacianScheme/blockLaplacianSchemes.C
+finiteVolume/laplacianSchemes/gaussBlockLaplacianScheme/gaussBlockLaplacianSchemes.C
+
+LIB = $(FOAM_LIBBIN)/libblockFiniteVolume
