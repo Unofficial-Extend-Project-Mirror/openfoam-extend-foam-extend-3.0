@@ -22,28 +22,50 @@ License
     along with OpenFOAM; if not, write to the Free Software Foundation,
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-InClass
-    Foam::primitiveFields
-
 Description
-    Specialisations of Field\<T\> for scalar, vector and tensor.
-
+    
 \*---------------------------------------------------------------------------*/
 
-#ifndef primitiveFields_H
-#define primitiveFields_H
+#include "multivariateGaussBlockConvectionScheme.H"
+#include "gaussBlockConvectionScheme.H"
+#include "blockFvMatrices.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#include "labelField.H"
-#include "scalarField.H"
-#include "vectorField.H"
-#include "tensorField.H"
-#include "sphericalTensorField.H"
-#include "diagTensorField.H"
+namespace Foam
+{
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#endif
+namespace fv
+{
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+
+template<class Type>
+tmp<blockFvMatrix<Type> >
+multivariateGaussBlockConvectionScheme<Type>::fvmDiv
+(
+    const surfaceScalarField& faceFlux,
+    GeometricField<Type, fvPatchField, volMesh>& vf
+) const
+{
+    return gaussBlockConvectionScheme<Type>
+    (
+        this->mesh(),
+        faceFlux,
+        tinterpScheme_()(vf)
+    ).fvmDiv(faceFlux, vf);
+}
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace fv
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace Foam
 
 // ************************************************************************* //

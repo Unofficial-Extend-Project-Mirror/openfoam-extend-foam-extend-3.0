@@ -209,7 +209,6 @@ void cyclicFvPatchField<Type>::updateInterfaceMatrix
     }
 }
 
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam

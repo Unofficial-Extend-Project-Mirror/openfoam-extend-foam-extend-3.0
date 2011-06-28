@@ -874,26 +874,68 @@ void Foam::BlockLduMatrix<Type>::operator=(const BlockLduMatrix<Type>& A)
 template<class Type>
 void Foam::BlockLduMatrix<Type>::operator+=(const BlockLduMatrix<Type>& A)
 {
-    // Do diagonal first
-    if (A.thereIsDiag())
+    if (A.diagPtr_)
     {
         diag() += A.diag();
     }
 
-    if (A.symmetric())
+    if (symmetric() && A.symmetric())
     {
         upper() += A.upper();
-
-        if (this->asymmetric())
-        {
-            lower() += A.upper().transpose();
-        }
     }
-
-    if (A.asymmetric())
+    else if (symmetric() && A.asymmetric())
     {
+        if (upperPtr_)
+        {
+            lower();
+        }
+        else
+        {
+            upper();
+        }
+
         upper() += A.upper();
         lower() += A.lower();
+    }
+    else if (asymmetric() && A.symmetric())
+    {
+        if (A.upperPtr_)
+        {
+            lower() += A.upper();
+            upper() += A.upper();
+        }
+        else
+        {
+            lower() += A.lower();
+            upper() += A.lower();
+        }
+
+    }
+    else if (asymmetric() && A.asymmetric())
+    {
+        lower() += A.lower();
+        upper() += A.upper();
+    }
+    else if (diagonal())
+    {
+        if (A.upperPtr_)
+        {
+            upper() = A.upper();
+        }
+
+        if (A.lowerPtr_)
+        {
+            lower() = A.lower();
+        }
+    }
+    else if (A.diagonal())
+    {
+    }
+    else
+    {
+        FatalErrorIn("BlockLduMatrix::operator+=(const BlockLduMatrix& A)")
+            << "Unknown matrix type combination"
+            << abort(FatalError);
     }
 
     source_ += A.source_;
@@ -909,26 +951,68 @@ void Foam::BlockLduMatrix<Type>::operator+=(const BlockLduMatrix<Type>& A)
 template<class Type>
 void Foam::BlockLduMatrix<Type>::operator-=(const BlockLduMatrix<Type>& A)
 {
-    // Do diagonal first
-    if (A.thereIsDiag())
+    if (A.diagPtr_)
     {
         diag() -= A.diag();
     }
 
-    if (A.symmetric())
+    if (symmetric() && A.symmetric())
     {
         upper() -= A.upper();
-
-        if (this->asymmetric())
-        {
-            lower() -= A.upper().transpose();
-        }
     }
-
-    if (A.asymmetric())
+    else if (symmetric() && A.asymmetric())
     {
+        if (upperPtr_)
+        {
+            lower();
+        }
+        else
+        {
+            upper();
+        }
+
         upper() -= A.upper();
         lower() -= A.lower();
+    }
+    else if (asymmetric() && A.symmetric())
+    {
+        if (A.upperPtr_)
+        {
+            lower() -= A.upper();
+            upper() -= A.upper();
+        }
+        else
+        {
+            lower() -= A.lower();
+            upper() -= A.lower();
+        }
+
+    }
+    else if (asymmetric() && A.asymmetric())
+    {
+        lower() -= A.lower();
+        upper() -= A.upper();
+    }
+    else if (diagonal())
+    {
+        if (A.upperPtr_)
+        {
+            upper() = -A.upper();
+        }
+
+        if (A.lowerPtr_)
+        {
+            lower() = -A.lower();
+        }
+    }
+    else if (A.diagonal())
+    {
+    }
+    else
+    {
+        FatalErrorIn("BlockLduMatrix::operator-=(const BlockLduMatrix& A)")
+            << "Unknown matrix type combination"
+            << abort(FatalError);
     }
 
     source_ -= A.source_;

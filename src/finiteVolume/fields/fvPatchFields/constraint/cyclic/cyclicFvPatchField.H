@@ -177,7 +177,9 @@ public:
                 const Pstream::commsTypes commsType
             ) const
             {
-                notImplemented("cyclicFvPatchField<Type>::updateInterfaceMatrix for block matrices")
+                notImplemented("cyclicFvPatchField<Type>::updateInterfaceMatrix"
+                    " for BlockLduMatrix of arbitary type"
+                );
             }
 
         //- Cyclic coupled interface functions
@@ -206,7 +208,6 @@ public:
                 return pTraits<Type>::rank;
             }
 };
-
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

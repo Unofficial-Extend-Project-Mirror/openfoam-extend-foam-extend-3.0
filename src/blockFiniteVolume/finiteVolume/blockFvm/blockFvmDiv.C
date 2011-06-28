@@ -22,19 +22,12 @@ License
     along with OpenFOAM; if not, write to the Free Software Foundation,
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-InClass
-    Foam::primitiveFields
-
-Description
-    Forward declarations of the specialisations of Field\<T\> for
-    scalar, vector and tensor.
-
 \*---------------------------------------------------------------------------*/
 
-#ifndef primitiveFieldsFwd_H
-#define primitiveFieldsFwd_H
-
-#include "fieldTypes.H"
+#include "blockFvmDiv.H"
+#include "fvMesh.H"
+#include "blockFvMatrix.H"
+#include "blockConvectionScheme.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -43,22 +36,75 @@ namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-template<class Type> class Field;
+namespace blockFvm
+{
 
-typedef Field<label> labelField;
-typedef Field<scalar> scalarField;
-typedef Field<vector> vectorField;
-typedef Field<sphericalTensor> sphericalTensorField;
-typedef Field<diagTensor> diagTensorField;
-typedef Field<symmTensor> symmTensorField;
-typedef Field<tensor> tensorField;
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+template<class Type>
+tmp<blockFvMatrix<Type> >
+div
+(
+    const surfaceScalarField& flux,
+    GeometricField<Type, fvPatchField, volMesh>& vf,
+    const word& name
+)
+{
+    return fv::blockConvectionScheme<Type>::New
+    (
+        vf.mesh(),
+        flux,
+        vf.mesh().divScheme(name)
+    )().fvmDiv(flux, vf);
+}
+
+
+template<class Type>
+tmp<blockFvMatrix<Type> >
+div
+(
+    const tmp<surfaceScalarField>& tflux,
+    GeometricField<Type, fvPatchField, volMesh>& vf,
+    const word& name
+)
+{
+    tmp<blockFvMatrix<Type> > Div(blockFvm::div(tflux(), vf, name));
+    tflux.clear();
+    return Div;
+}
+
+
+template<class Type>
+tmp<blockFvMatrix<Type> >
+div
+(
+    const surfaceScalarField& flux,
+    GeometricField<Type, fvPatchField, volMesh>& vf
+)
+{
+    return blockFvm::div(flux, vf, "div("+flux.name()+','+vf.name()+')');
+}
+
+template<class Type>
+tmp<blockFvMatrix<Type> >
+div
+(
+    const tmp<surfaceScalarField>& tflux,
+    GeometricField<Type, fvPatchField, volMesh>& vf
+)
+{
+    tmp<blockFvMatrix<Type> > Div(blockFvm::div(tflux(), vf));
+    tflux.clear();
+    return Div;
+}
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace blockFvm
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

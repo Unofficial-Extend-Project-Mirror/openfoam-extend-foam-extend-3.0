@@ -22,19 +22,12 @@ License
     along with OpenFOAM; if not, write to the Free Software Foundation,
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-InClass
-    Foam::primitiveFields
-
 Description
-    Forward declarations of the specialisations of Field\<T\> for
-    scalar, vector and tensor.
+    Abstract base class for finite volume calculus convection schemes.
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef primitiveFieldsFwd_H
-#define primitiveFieldsFwd_H
-
-#include "fieldTypes.H"
+#include "blockConvectionScheme.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -43,22 +36,40 @@ namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-template<class Type> class Field;
+namespace fv
+{
 
-typedef Field<label> labelField;
-typedef Field<scalar> scalarField;
-typedef Field<vector> vectorField;
-typedef Field<sphericalTensor> sphericalTensorField;
-typedef Field<diagTensor> diagTensorField;
-typedef Field<symmTensor> symmTensorField;
-typedef Field<tensor> tensorField;
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// Define the constructor function hash tables
+
+#define makeBaseBlockConvectionScheme(Type)                                   \
+                                                                              \
+defineTemplateRunTimeSelectionTable                                           \
+(                                                                             \
+    blockConvectionScheme<Type>,                                              \
+    Istream                                                                   \
+);                                                                            \
+                                                                              \
+defineTemplateRunTimeSelectionTable                                           \
+(                                                                             \
+    blockConvectionScheme<Type>,                                              \
+    Multivariate                                                              \
+);
+
+
+makeBaseBlockConvectionScheme(scalar)
+makeBaseBlockConvectionScheme(vector)
+makeBaseBlockConvectionScheme(sphericalTensor)
+makeBaseBlockConvectionScheme(symmTensor)
+makeBaseBlockConvectionScheme(tensor)
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace fv
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

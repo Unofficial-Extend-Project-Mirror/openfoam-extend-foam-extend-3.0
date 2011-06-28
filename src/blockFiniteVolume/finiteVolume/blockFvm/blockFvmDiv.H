@@ -22,40 +22,78 @@ License
     along with OpenFOAM; if not, write to the Free Software Foundation,
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-InClass
-    Foam::primitiveFields
+InNamespace
+    Foam::blockFvm
 
 Description
-    Forward declarations of the specialisations of Field\<T\> for
-    scalar, vector and tensor.
+    Calculate the matrix for the divergence of the given field and flux.
+
+SourceFiles
+    blockFvmDiv.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef primitiveFieldsFwd_H
-#define primitiveFieldsFwd_H
+#ifndef blockFvmDiv_H
+#define blockFvmDiv_H
 
-#include "fieldTypes.H"
+#include "volFieldsFwd.H"
+#include "surfaceFieldsFwd.H"
+#include "surfaceInterpolationScheme.H"
+#include "blockFvMatrix.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+/*---------------------------------------------------------------------------*\
+                     Namespace blockFvm functions Declaration
+\*---------------------------------------------------------------------------*/
 
-template<class Type> class Field;
+namespace blockFvm
+{
+    template<class Type>
+    tmp<blockFvMatrix<Type> > div
+    (
+        const surfaceScalarField&,
+        GeometricField<Type, fvPatchField, volMesh>&,
+        const word& name
+    );
 
-typedef Field<label> labelField;
-typedef Field<scalar> scalarField;
-typedef Field<vector> vectorField;
-typedef Field<sphericalTensor> sphericalTensorField;
-typedef Field<diagTensor> diagTensorField;
-typedef Field<symmTensor> symmTensorField;
-typedef Field<tensor> tensorField;
+    template<class Type>
+    tmp<blockFvMatrix<Type> > div
+    (
+        const tmp<surfaceScalarField>&,
+        GeometricField<Type, fvPatchField, volMesh>&,
+        const word& name
+    );
+
+
+    template<class Type>
+    tmp<blockFvMatrix<Type> > div
+    (
+        const surfaceScalarField&,
+        GeometricField<Type, fvPatchField, volMesh>&
+    );
+
+    template<class Type>
+    tmp<blockFvMatrix<Type> > div
+    (
+        const tmp<surfaceScalarField>&,
+        GeometricField<Type, fvPatchField, volMesh>&
+    );
+}
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+#   include "blockFvmDiv.C"
+#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

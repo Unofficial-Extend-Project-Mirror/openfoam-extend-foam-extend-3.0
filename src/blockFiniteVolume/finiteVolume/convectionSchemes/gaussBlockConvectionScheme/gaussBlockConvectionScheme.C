@@ -24,11 +24,9 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef cyclicFvPatchFields_H
-#define cyclicFvPatchFields_H
-
-#include "cyclicFvPatchField.H"
-#include "fieldTypes.H"
+#include "gaussBlockConvectionScheme.H"
+#include "fvcSurfaceIntegrate.H"
+#include "blockFvMatrices.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -37,37 +35,68 @@ namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-template<>
-void cyclicFvPatchField<scalar>::updateInterfaceMatrix
-(
-    const Field<scalar>&,
-    Field<scalar>&,
-    const BlockLduMatrix<scalar>&,
-    const CoeffField<scalar>&,
-    const Pstream::commsTypes commsType
-) const;
+namespace fv
+{
 
-template<>
-void cyclicFvPatchField<vector>::updateInterfaceMatrix
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+
+template<class Type>
+tmp<blockFvMatrix<Type> >
+gaussBlockConvectionScheme<Type>::fvmDiv
 (
-    const Field<vector>&,
-    Field<vector>&,
-    const BlockLduMatrix<vector>&,
-    const CoeffField<vector>&,
-    const Pstream::commsTypes commsType
-) const;
+    const surfaceScalarField& faceFlux,
+    GeometricField<Type, fvPatchField, volMesh>& vf
+) const
+{
+    tmp<surfaceScalarField> tweights = tinterpScheme_().weights(vf);
+    const surfaceScalarField& weights = tweights();
+
+    tmp<blockFvMatrix<Type> > tfvm
+    (
+        new blockFvMatrix<Type>
+        (
+            vf,
+            faceFlux.dimensions()*vf.dimensions()
+        )
+    );
+    blockFvMatrix<Type>& fvm = tfvm();
+
+    fvm.lower() = -weights.internalField()*faceFlux.internalField();
+    fvm.upper() = fvm.lower().asScalar() + faceFlux.internalField();
+    fvm.negSumDiag();
+
+    forAll(fvm.psi().boundaryField(), patchI)
+    {
+        const fvPatchField<Type>& psf = fvm.psi().boundaryField()[patchI];
+        const fvsPatchScalarField& patchFlux = faceFlux.boundaryField()[patchI];
+        const fvsPatchScalarField& pw = weights.boundaryField()[patchI];
+
+        fvm.interfaceDiag()[patchI] = patchFlux*psf.valueInternalCoeffs(pw);
+        fvm.interfaceSource()[patchI] = -patchFlux*psf.valueBoundaryCoeffs(pw);
+        
+        if(psf.coupled())
+        {
+            fvm.coupleUpper()[patchI] = patchFlux*psf.valueUpperCoeffs(pw);
+            fvm.coupleLower()[patchI] = -patchFlux*psf.valueLowerCoeffs(pw);
+        }
+    }
+
+    if (tinterpScheme_().corrected())
+    {
+        fvm += fvc::surfaceIntegrate(faceFlux*tinterpScheme_().correction(vf));
+    }
+
+    return tfvm;
+}
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-makePatchTypeFieldTypedefs(cyclic)
+} // End namespace fv
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#endif
 
 // ************************************************************************* //

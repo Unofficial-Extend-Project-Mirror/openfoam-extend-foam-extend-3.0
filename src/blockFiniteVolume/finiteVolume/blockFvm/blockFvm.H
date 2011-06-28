@@ -37,13 +37,13 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #ifndef blockFvm_H
-#define blockvm_H
+#define blockFvm_H
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #include "blockFvmDdt.H"
 // #include "fvmD2dt2.H"
-// #include "fvmDiv.H"
+#include "blockFvmDiv.H"
 #include "blockFvmLaplacian.H"
 #include "blockFvmScalarSup.H"
 #include "blockFvmVectorSup.H"

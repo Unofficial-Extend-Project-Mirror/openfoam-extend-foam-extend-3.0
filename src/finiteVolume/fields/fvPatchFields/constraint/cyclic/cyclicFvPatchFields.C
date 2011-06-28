@@ -27,11 +27,92 @@ License
 #include "cyclicFvPatchFields.H"
 #include "addToRunTimeSelectionTable.H"
 #include "volFields.H"
+#include "scalarCoeffField.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+//- Update result field based on interface functionality
+template<>
+void cyclicFvPatchField<scalar>::updateInterfaceMatrix
+(
+    const Field<scalar>& psiInternal,
+    Field<scalar>& result,
+    const BlockLduMatrix<scalar>& m,
+    const CoeffField<scalar>& coeffs,
+    const Pstream::commsTypes commsType
+) const
+{
+    Field<scalar> pnf(this->size());
+
+    label sizeby2 = this->size()/2;
+    const unallocLabelList& faceCells = cyclicPatch_.faceCells();
+
+    for (label facei=0; facei<sizeby2; facei++)
+    {
+        pnf[facei] = psiInternal[faceCells[facei + sizeby2]];
+        pnf[facei + sizeby2] = psiInternal[faceCells[facei]];
+    }
+    
+    // Multiply the field by coefficients and add into the result
+    forAll(faceCells, elemI)
+    {
+        result[faceCells[elemI]] -= coeffs[elemI]*pnf[elemI];
+    }
+}
+
+
+//- Update result field based on interface functionality
+template<>
+void cyclicFvPatchField<vector>::updateInterfaceMatrix
+(
+    const Field<vector>& psiInternal,
+    Field<vector>& result,
+    const BlockLduMatrix<vector>& m,
+    const CoeffField<vector>& coeffs,
+    const Pstream::commsTypes commsType
+) const
+{
+    Field<vector> pnf(this->size());
+
+    label sizeby2 = this->size()/2;
+    const unallocLabelList& faceCells = cyclicPatch_.faceCells();
+
+    for (label facei=0; facei<sizeby2; facei++)
+    {
+        pnf[facei] = psiInternal[faceCells[facei + sizeby2]];
+        pnf[facei + sizeby2] = psiInternal[faceCells[facei]];
+    }
+
+// Ivor Clifford
+// TODO
+    // Transform according to the transformation tensors
+//    transformCoupleField(pnf, cmpt);
+
+    if (coeffs.activeType() == blockCoeffBase::SCALAR)                          
+    {                                                                           
+        pnf = coeffs.asScalar() * pnf;                                          
+    }                                                                           
+    else if (coeffs.activeType() == blockCoeffBase::LINEAR)                     
+    {                                                                           
+        pnf = cmptMultiply(coeffs.asLinear(), pnf);                             
+    }                                                                           
+    else if (coeffs.activeType() == blockCoeffBase::SQUARE)
+    {
+        pnf = coeffs.asSquare() & pnf;
+    }
+
+    // Multiply the field by coefficients and add into the result
+    forAll(faceCells, elemI)
+    {
+        result[faceCells[elemI]] -= pnf[elemI];
+    }
+}
+
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 

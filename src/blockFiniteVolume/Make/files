@@ -10,4 +10,8 @@ finiteVolume/ddtSchemes/EulerBlockDdtScheme/EulerBlockDdtSchemes.C
 finiteVolume/laplacianSchemes/blockLaplacianScheme/blockLaplacianSchemes.C
 finiteVolume/laplacianSchemes/gaussBlockLaplacianScheme/gaussBlockLaplacianSchemes.C
 
+finiteVolume/convectionSchemes/blockConvectionScheme/blockConvectionSchemes.C
+finiteVolume/convectionSchemes/gaussBlockConvectionScheme/gaussBlockConvectionSchemes.C
+finiteVolume/convectionSchemes/multivariateGaussBlockConvectionScheme/multivariateGaussBlockConvectionSchemes.C
+
 LIB = $(FOAM_LIBBIN)/libblockFiniteVolume
