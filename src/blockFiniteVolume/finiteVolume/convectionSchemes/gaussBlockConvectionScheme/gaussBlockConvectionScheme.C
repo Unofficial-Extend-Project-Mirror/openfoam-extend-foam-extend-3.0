@@ -77,7 +77,7 @@ gaussBlockConvectionScheme<Type>::fvmDiv
         
         if(psf.coupled())
         {
-            fvm.coupleUpper()[patchI] = patchFlux*psf.valueUpperCoeffs(pw);
+            fvm.coupleUpper()[patchI] = -patchFlux*psf.valueUpperCoeffs(pw);
             fvm.coupleLower()[patchI] = -patchFlux*psf.valueLowerCoeffs(pw);
         }
     }

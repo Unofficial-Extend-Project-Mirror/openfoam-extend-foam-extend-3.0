@@ -255,7 +255,15 @@ public:
 
 
         // Operations
-
+            
+            //- Set reference level for solution
+            void setReference
+            (
+                const label celli,
+                const Type& value,
+                const bool forceReference = false
+            );
+            
             //- Solve returning the solution statistics.
             //  Solver controls read from Istream
             BlockSolverPerformance<Type> solve(const dictionary&);
@@ -268,11 +276,27 @@ public:
             tmp<Field<Type> > residual() const;
 
             //- Return the matrix diagonal
-            tmp<CoeffField<Type> > D() const;
+            tmp<CoeffField<Type> > blockD() const;
 
+            //- Return the matrix scalar diagonal
+            tmp<scalarField> D() const;
+            
+            //- Return the matrix Type diagonal
+            tmp<Field<Type> > DD() const;
+
+            //- Return the central coefficient
+            tmp<volScalarField> A() const;
+            
             //- Return the H operation source
             tmp<GeometricField<Type, fvPatchField, volMesh> > H() const;
 
+            //- Return H(1)
+            tmp<volScalarField> H1() const;
+
+            //- Return the face-flux field from the matrix
+            tmp<GeometricField<Type, fvsPatchField, surfaceMesh> >
+            flux() const;
+            
     // Member operators
 
         void operator=(const blockFvMatrix<Type>&);

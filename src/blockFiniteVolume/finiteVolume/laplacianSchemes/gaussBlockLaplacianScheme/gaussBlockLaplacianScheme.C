@@ -79,7 +79,7 @@ gaussBlockLaplacianScheme<Type, GType>::fvmLaplacianUncorrected
         if(psf.coupled())
         {
             fvm.coupleUpper()[patchI] = -patchGamma*psf.gradientUpperCoeffs();
-            fvm.coupleLower()[patchI] = patchGamma*psf.gradientLowerCoeffs();
+            fvm.coupleLower()[patchI] = -patchGamma*psf.gradientLowerCoeffs();
         }
     }
 

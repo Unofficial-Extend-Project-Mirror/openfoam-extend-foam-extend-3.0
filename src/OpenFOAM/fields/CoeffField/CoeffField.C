@@ -60,12 +60,12 @@ Foam::CoeffField<Type>::toScalar()
         // Debug check: demotion
         if (linearCoeffPtr_ || squareCoeffPtr_)
         {
-            FatalErrorIn
+            WarningIn
             (
                 "CoeffField<Type>::scalarTypeField& "
                 "CoeffField<Type>::toScalar()"
             )   << "Detected demotion to scalar.  Probably an error"
-                << abort(FatalError);
+                << endl;
         }
 
         scalarCoeffPtr_ =
@@ -85,12 +85,12 @@ Foam::CoeffField<Type>::toLinear()
         // Debug check: demotion
         if (squareCoeffPtr_)
         {
-            FatalErrorIn
+            WarningIn
             (
                 "CoeffField<Type>::linearTypeField& "
                 "CoeffField<Type>::toLinear()"
             )   << "Detected demotion to linear.  Probably an error"
-                << abort(FatalError);
+                << endl;
         }
 
         linearCoeffPtr_ =

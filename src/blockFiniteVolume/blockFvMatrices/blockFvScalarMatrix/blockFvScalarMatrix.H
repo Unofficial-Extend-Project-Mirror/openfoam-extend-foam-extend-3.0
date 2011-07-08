@@ -76,12 +76,6 @@ namespace Foam
 // 
 // template<>
 // tmp<scalarField> fvMatrix<scalar>::residual() const;
-// 
-// template<>
-// tmp<volScalarField> fvMatrix<scalar>::H() const;
-// 
-// template<>
-// tmp<volScalarField> fvMatrix<scalar>::H1() const;
 
 template<>
 void blockFvMatrix<scalar>::addBoundarySource
@@ -89,6 +83,30 @@ void blockFvMatrix<scalar>::addBoundarySource
     Field<scalar>& source,
     const bool couples
 ) const;
+
+
+template<>
+void blockFvMatrix<scalar>::setReference
+(
+    const label celli,
+    const scalar& value,
+    const bool forceReference
+);
+
+
+template<>
+tmp<scalarField> blockFvMatrix<scalar>::D() const;
+
+
+template<>
+tmp<scalarField> blockFvMatrix<scalar>::DD() const;
+
+
+template<>
+tmp<volScalarField> blockFvMatrix<scalar>::H() const;
+
+template<>
+tmp<surfaceScalarField> blockFvMatrix<scalar>::flux() const;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

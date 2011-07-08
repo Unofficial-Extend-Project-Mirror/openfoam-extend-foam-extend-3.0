@@ -343,15 +343,160 @@ blockFvMatrix<Type>::~blockFvMatrix()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
+
 template<class Type>
-tmp<CoeffField<Type> > blockFvMatrix<Type>::D() const
+void blockFvMatrix<Type>::setReference
+(
+    const label celli,
+    const Type& value,
+    const bool forceReference
+)
+{
+    if (celli >= 0 && (psi_.needReference() || forceReference))
+    {
+        // Bug fix: force reference only on master for parallel runs
+        // HJ, 12/Feb/2010
+        if (Pstream::parRun())
+        {
+            // Parallel run:
+            // - only set reference on master processor: one place is enough
+            // - make sure that cellI is not out of range
+            if (Pstream::master())
+            {
+                label parCelli = celli;
+
+                while (parCelli >= BlockLduMatrix<Type>::diag().size())
+                {
+                    // Out of range, pick a local cell
+                    parCelli /= Pstream::nProcs();
+                }
+
+                BlockCoeff<Type>& diagCoeff = BlockLduMatrix<Type>::diag()[parCelli];
+                
+                BlockLduMatrix<Type>::source()[parCelli]
+                    += BlockCoeff<Type>::multiply(diagCoeff, value);
+                    
+                diagCoeff += diagCoeff;
+            }
+        }
+        else
+        {
+            // Serial run, standard practice
+            BlockCoeff<Type>& diagCoeff = BlockLduMatrix<Type>::diag()[celli];
+            
+            BlockLduMatrix<Type>::source()[celli]
+                += BlockCoeff<Type>::multiply(diagCoeff, value);
+                
+            diagCoeff += diagCoeff;
+        }
+    }
+}
+
+
+template<class Type>
+tmp<CoeffField<Type> > blockFvMatrix<Type>::blockD() const
 {
     tmp<CoeffField<Type> > tdiag
     (
         new CoeffField<Type>(BlockLduMatrix<Type>::diag())
     );
+    
     addBoundaryDiag(tdiag());
+    
     return tdiag;
+}
+
+
+template<class Type>
+tmp<scalarField> blockFvMatrix<Type>::D() const
+{
+    const CoeffField<Type> diag(blockD());
+    
+    tmp<scalarField> tscalarDiag(new scalarField(diag.size()));
+    scalarField& scalarDiag = tscalarDiag();
+    
+    if (diag.activeType() == blockCoeffBase::SCALAR)
+    {
+        scalarDiag = diag.asScalar();
+    }
+    else if (diag.activeType() == blockCoeffBase::LINEAR)
+    {
+        cmptAv(scalarDiag, diag.asLinear());
+    }
+    else if (diag.activeType() == blockCoeffBase::SQUARE)
+    {
+        contractScalar(scalarDiag, diag.asSquare());
+    }
+    
+    return tscalarDiag;
+}
+
+
+template<class Type>
+tmp<Field<Type> > blockFvMatrix<Type>::DD() const
+{
+    CoeffField<Type> diag(blockD());
+
+    forAll(psi_.boundaryField(), patchI)
+    {
+        const fvPatchField<Type>& ptf = psi_.boundaryField()[patchI];
+
+        if (!ptf.coupled() && ptf.size())
+        {
+            addToInternalField
+            (
+                BlockLduMatrix<Type>::lduAddr().patchAddr(patchI),
+                BlockLduMatrix<Type>::interfaceDiag()[patchI],
+                diag
+            );
+        }
+    }
+
+    tmp<Field<Type> > ttypeDiag(new Field<Type>());
+    Field<Type>& typeDiag = ttypeDiag();
+
+    if (diag.activeType() == blockCoeffBase::SCALAR)
+    {
+        expandLinear(typeDiag, diag.asScalar());
+    }
+    else if (diag.activeType() == blockCoeffBase::LINEAR)
+    {
+        typeDiag = diag.asLinear();
+    }
+    else if (diag.activeType() == blockCoeffBase::SQUARE)
+    {
+        contractLinear(typeDiag, diag.asSquare());
+    }
+
+    return ttypeDiag;
+}
+
+
+template<class Type>
+tmp<volScalarField> blockFvMatrix<Type>::A() const
+{
+    tmp<volScalarField> tAphi
+    (
+        new volScalarField
+        (
+            IOobject
+            (
+                "A("+psi_.name()+')',
+                psi_.instance(),
+                psi_.mesh(),
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            psi_.mesh(),
+            dimensions_/psi_.dimensions()/dimVol,
+            zeroGradientFvPatchScalarField::typeName
+        )
+    );
+
+    tAphi().internalField() = D()/psi_.mesh().V();
+    tAphi().correctBoundaryConditions();
+
+    return tAphi;
 }
 
 
@@ -376,16 +521,230 @@ tmp<GeometricField<Type, fvPatchField, volMesh> > blockFvMatrix<Type>::H() const
         )
     );
     GeometricField<Type, fvPatchField, volMesh>& Hphi = tHphi();
-    Hphi.internalField() = BlockLduMatrix<Type>::H(psi_.internalField());
-    Hphi.internalField() += BlockLduMatrix<Type>::source_;
-
+    
+    Hphi.internalField() = BlockLduMatrix<Type>::H(psi_.internalField());    
+    Hphi.internalField() += BlockLduMatrix<Type>::source();
     addBoundarySource(Hphi.internalField());
 
+    // Ivor Clifford 08/07/2011
+    // NOTE - We only need to do this since blockFvMatrix::A() returns
+    // SCALAR rather than LINEAR or full SQUARE values and we want to
+    // remain compatible with the old fvMatrix approach.
+    // I don't like this, we should be fixing blockFvMatrix::A() instead.
+    
+    // Correct for diagonal coefficient off-diagonal components.
+    const Field<Type>& psii = psi_.internalField();
+    
+    Field<Type>& Hphii = Hphi.internalField();
+    
+    typedef typename BlockCoeff<Type>::squareTypeField squareTypeField;
+
+    if (BlockLduMatrix<Type>::diag().activeType() == blockCoeffBase::LINEAR)
+    {
+        const Field<Type>& diag_ = BlockLduMatrix<Type>::diag().asLinear();
+        
+        forAll(psii, celli)
+        {
+            Hphii[celli] += cmptAv(diag_[celli])*psii[celli]
+                - cmptMultiply(diag_[celli], psii[celli]);
+        }
+    }
+    if (BlockLduMatrix<Type>::diag().activeType() == blockCoeffBase::SQUARE)
+    {
+        const squareTypeField& diag_ = BlockLduMatrix<Type>::diag().asSquare();
+            
+        forAll(psii, celli)
+        {
+            Hphii[celli] += contractScalar(diag_[celli])*psii[celli]
+                - (diag_[celli] & psii[celli]);
+        }
+    }
+    
+    // Correct for boundary coefficient off-diagonal components.
+    forAll(BlockLduMatrix<Type>::interfaceDiag(), patchI)
+    {
+        const CoeffField<Type>& interfaceDiag_
+            = BlockLduMatrix<Type>::interfaceDiag()[patchI];
+            
+        const unallocLabelList& addr
+            = BlockLduMatrix<Type>::lduAddr().patchAddr(patchI);
+                
+        if(interfaceDiag_.activeType() == blockCoeffBase::LINEAR)
+        {
+            const Field<Type>& coeffs = interfaceDiag_.asLinear();
+            
+            forAll(addr, facei)
+            {
+                label celli = addr[facei];
+                
+                Hphii[celli] += cmptAv(coeffs[facei])*psii[celli]
+                    - cmptMultiply(coeffs[facei], psii[celli]);
+            }
+        }
+        else if(interfaceDiag_.activeType() == blockCoeffBase::SQUARE)
+        {
+            const squareTypeField& coeffs = interfaceDiag_.asSquare();
+            
+            forAll(addr, facei)
+            {
+                label celli = addr[facei];
+                
+                Hphii[celli] += contractScalar(coeffs[facei])*psii[celli]
+                    - (coeffs[facei] & psii[celli]);
+            }
+        }
+    }
+    
     Hphi.internalField() /= psi_.mesh().V();
     Hphi.correctBoundaryConditions();
 
     return tHphi;
 }
+
+
+template<class Type>
+tmp<volScalarField> blockFvMatrix<Type>::H1() const
+{
+    tmp<volScalarField> tH1
+    (
+        new volScalarField
+        (
+            IOobject
+            (
+                "H(1)",
+                psi_.instance(),
+                psi_.mesh(),
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            psi_.mesh(),
+            dimensions_/(dimVol*psi_.dimensions()),
+            zeroGradientFvPatchScalarField::typeName
+        )
+    );
+    volScalarField& H1_ = tH1();
+
+    H1_.internalField() = BlockLduMatrix<Type>::H1();
+
+    H1_.internalField() /= psi_.mesh().V();
+    H1_.correctBoundaryConditions();
+
+    return tH1;
+}
+
+
+template<class Type>
+tmp<GeometricField<Type, fvsPatchField, surfaceMesh> >
+blockFvMatrix<Type>::flux() const
+{
+    if (!psi_.mesh().fluxRequired(psi_.name()))
+    {
+        FatalErrorIn("blockFvMatrix<Type>::flux()")
+            << "flux requested but " << psi_.name()
+            << " not specified in the fluxRequired sub-dictionary"
+               " of fvSchemes."
+            << abort(FatalError);
+    }
+
+    // construct GeometricField<Type, fvsPatchField, surfaceMesh>
+    tmp<GeometricField<Type, fvsPatchField, surfaceMesh> > tfieldFlux
+    (
+        new GeometricField<Type, fvsPatchField, surfaceMesh>
+        (
+            IOobject
+            (
+                "flux("+psi_.name()+')',
+                psi_.instance(),
+                psi_.mesh(),
+                IOobject::NO_READ,
+                IOobject::NO_WRITE
+            ),
+            psi_.mesh(),
+            dimensions()
+        )
+    );
+    GeometricField<Type, fvsPatchField, surfaceMesh>& fieldFlux = tfieldFlux();
+
+    fieldFlux.internalField() = BlockLduMatrix<Type>::faceH(psi_.internalField());
+
+    //- Boundary diagonal contribution
+    forAll(psi_.boundaryField(), patchI)
+    {
+        Field<Type>& pFieldFlux = fieldFlux.boundaryField()[patchI];
+        
+        const CoeffField<Type>& pInterfaceDiag
+            = BlockLduMatrix<scalar>::interfaceDiag()[patchI];
+        
+        if (pInterfaceDiag.activeType() == blockCoeffBase::SCALAR)
+        {
+            pFieldFlux = pInterfaceDiag.asScalar()
+                * psi_.boundaryField()[patchI].patchInternalField();
+        }
+        else if (pInterfaceDiag.activeType() == blockCoeffBase::LINEAR)
+        {
+            pFieldFlux = cmptMultiply
+            (
+                pInterfaceDiag.asLinear(),
+                psi_.boundaryField()[patchI].patchInternalField()
+            );
+        }
+        else if (pInterfaceDiag.activeType() == blockCoeffBase::SQUARE)
+        {
+            pFieldFlux =
+            (
+                pInterfaceDiag.asSquare()
+              & psi_.boundaryField()[patchI].patchInternalField()
+            );
+        }
+        else
+        {
+            pFieldFlux = pTraits<Type>::zero;
+        }
+    }
+        
+    //- Boundary diagonal contribution
+    forAll(psi_.boundaryField(), patchI)
+    {        
+        //- Coupled Boundaries off-diagonal contribution
+        if (psi_.boundaryField()[patchI].coupled())
+        {
+            Field<Type>& pFieldFlux = fieldFlux.boundaryField()[patchI];
+            
+            CoeffField<Type>& pCoupleUpper
+                = BlockLduMatrix<scalar>::coupleUpper()[patchI];
+            
+            if (pCoupleUpper.activeType() == blockCoeffBase::SCALAR)
+            {
+                pFieldFlux -= pCoupleUpper.asScalar()
+                    * psi_.boundaryField()[patchI].patchNeighbourField();
+            }
+            else if (pCoupleUpper.activeType() == blockCoeffBase::LINEAR)
+            {
+                pFieldFlux -= cmptMultiply
+                (
+                    pCoupleUpper.asLinear(),
+                    psi_.boundaryField()[patchI].patchNeighbourField()
+                );
+            }
+            else if (pCoupleUpper.activeType() == blockCoeffBase::SQUARE)
+            {
+                pFieldFlux -=
+                (
+                    pCoupleUpper.asSquare()
+                  & psi_.boundaryField()[patchI].patchNeighbourField()
+                );
+            }
+        }
+    }
+
+    if (faceFluxCorrectionPtr_)
+    {
+        fieldFlux += *faceFluxCorrectionPtr_;
+    }
+
+    return tfieldFlux;
+}
+
 
 
 // * * * * * * * * * * * * * * * Member Operators  * * * * * * * * * * * * * //

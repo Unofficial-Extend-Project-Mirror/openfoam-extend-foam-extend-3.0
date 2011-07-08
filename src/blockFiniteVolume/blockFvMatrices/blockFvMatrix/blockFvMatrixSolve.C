@@ -67,6 +67,10 @@ BlockSolverPerformance<Type> blockFvMatrix<Type>::solve
     Field<Type> source = BlockLduMatrix<Type>::source();
 
     addBoundarySource(source, false);
+    
+    // TODO - Ivor Clifford 07/08/2011
+    // For scalar coefficients this automatically expands the diagonal
+    // to linear coefficients. We need to address this somehow
     addBoundaryDiag(BlockLduMatrix<Type>::diag());
 
     typename Foam::BlockLduInterfaceFieldPtrsList<Type>::Type interfaces
@@ -83,6 +87,8 @@ BlockSolverPerformance<Type> blockFvMatrix<Type>::solve
 
     solverPerf.print();
 
+    // TODO - Ivor Clifford 07/08/2011
+    // See above. Demotion back to scalar will flag a warning.
     BlockLduMatrix<Type>::diag() = saveDiag;
 
     psi_.correctBoundaryConditions();
