@@ -1,0 +1,150 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | Copyright (C) 2010-2010 OpenCFD Ltd.
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM.
+#
+#     OpenFOAM is free software: you can redistribute it and/or modify it
+#     under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#     for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+#
+# File
+#     etc/prefs.sh
+#
+# Description
+#     Preset variables for the OpenFOAM configuration - POSIX shell syntax.
+#
+#     The prefs.sh file will be sourced by the OpenFOAM etc/bashrc when it is
+#     found by foamEtcFile.
+#
+# See Also
+#     'foamEtcFile -help' or 'foamEtcFile -list' for information about the
+#     paths searched
+#
+#------------------------------------------------------------------------------
+
+export FOAM_VERBOSE=1
+
+# Specify system compiler
+# ~~~~~~~~~~~~~~~~~~~~~~~
+compilerInstall=system
+
+# Specify system openmpi
+# ~~~~~~~~~~~~~~~~~~~~~~
+#
+# Normally, you don't need to set more than these 3 env. variables
+# The other openmpi related variables will be initialized using 
+# the command mpicc --showme:
+#
+export WM_MPLIB=SYSTEMOPENMPI
+export OPENMPI_DIR=/usr
+export OPENMPI_BIN_DIR=$OPENMPI_DIR/bin
+#
+export OPENMPI_LIB_DIR="`$OPENMPI_BIN_DIR/mpicc --showme:libdirs`"
+export OPENMPI_INCLUDE_DIR="`$OPENMPI_BIN_DIR/mpicc --showme:incdirs`"
+export OPENMPI_COMPILE_FLAGS="`$OPENMPI_BIN_DIR/mpicc --showme:compile`"
+export OPENMPI_LINK_FLAGS="`$OPENMPI_BIN_DIR/mpicc --showme:link`"
+
+# Specify system installed ThirdParty packages/libraries
+# NB: The packages installed under $WM_THIRD_PARTY_DIR
+#     will always override these values. 
+#     So build your ThirdParty directory accordingly.
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# System installed Mesquite
+export MESQUITE_SYSTEM=1
+export MESQUITE_DIR=/usr
+export MESQUITE_BIN_DIR=$MESQUITE_DIR/bin
+export MESQUITE_LIB_DIR=$MESQUITE_DIR/lib
+export MESQUITE_INCLUDE_DIR=$MESQUITE_DIR/include
+
+# System installed Metis
+export METIS_SYSTEM=1
+export METIS_DIR=/usr
+export METIS_BIN_DIR=$METIS_DIR/bin
+export METIS_LIB_DIR=$METIS_DIR/lib
+export METIS_INCLUDE_DIR=$METIS_DIR/include/metis
+
+# System installed ParMetis
+export PARMETIS_SYSTEM=1
+export PARMETIS_DIR=/usr
+export PARMETIS_BIN_DIR=$PARMETIS_DIR/bin
+export PARMETIS_LIB_DIR=$PARMETIS_DIR/lib
+export PARMETIS_INCLUDE_DIR=$PARMETIS_DIR/include/parmetis
+
+# System installed ParMGridgen
+export PARMGRIDGEN_SYSTEM=1
+export PARMGRIDGEN_DIR=/usr
+export PARMGRIDGEN_BIN_DIR=$PARMGRIDGEN_DIR/bin
+export PARMGRIDGEN_LIB_DIR=$PARMGRIDGEN_DIR/lib
+export PARMGRIDGEN_INCLUDE_DIR=$PARMGRIDGEN_DIR/include/mgridgen
+
+# System installed Libccmio
+#export LIBCCMIO_SYSTEM=1
+#export LIBCCMIO_DIR=path_to_system_installed_libccmio
+#export LIBCCMIO_BIN_DIR=$LIBCCMIO_DIR/bin
+#export LIBCCMIO_LIB_DIR=$LIBCCMIO_DIR/lib
+#export LIBCCMIO_INCLUDE_DIR=$LIBCCMIO_DIR/include
+
+# System installed Scotch
+export SCOTCH_SYSTEM=1
+export SCOTCH_DIR=/usr
+export SCOTCH_BIN_DIR=$SCOTCH_DIR/bin
+export SCOTCH_LIB_DIR=$SCOTCH_DIR/lib
+export SCOTCH_INCLUDE_DIR=$SCOTCH_DIR/include/scotch
+
+# System installed CMake
+export CMAKE_SYSTEM=1
+export CMAKE_DIR=/usr
+export CMAKE_BIN_DIR=$CMAKE_DIR/bin
+
+# System installed Python
+export PYTHON_SYSTEM=1
+export PYTHON_DIR=/usr
+export PYTHON_BIN_DIR=$PYTHON_DIR/bin
+
+# System installed Qt
+# This is the only package we assume is system installed by default.
+# So we don't use a variable called QT_SYSTEM, but instead a variable
+# called QT_THIRD_PARTY in order to override to the ThirdParty QT
+# package.
+#
+# If you choose to use the system installed version of QT, keep
+# the variable QT_THIRD_PARTY commented, and uncomment the initialization
+# of the variable QT_DIR and QT_BIN_DIR. Make sure both variables are
+# properly initialized.
+#
+# If you choose instead to use the ThirdParty version of QT, only uncomment
+# the variable QT_THIRD_PARTY and set it to 1. Keep the initialization 
+# of the variables QT_DIR nd QT_BIN_DIR commented. The QT ThirdParty scripts
+# will take care of setting the variables QT_DIR and QT_BIN_DIR to the 
+# proper values.
+#
+#export QT_THIRD_PARTY=1
+#export QT_DIR=path_to_system_installed_qt
+#export QT_BIN_DIR=$QT_DIR/bin
+
+# System installed ParaView
+export PARAVIEW_SYSTEM=1
+export PARAVIEW_DIR=/usr
+export PARAVIEW_BIN_DIR=$PARAVIEW_DIR/bin
+
+# Specify ParaView version
+# ~~~~~~~~~~~~~~~~~~~~~~~~
+#export ParaView_VERSION=git        # eg, cvs/git version
+#export ParaView_MAJOR=3.7
+
+# ----------------------------------------------------------------- end-of-file

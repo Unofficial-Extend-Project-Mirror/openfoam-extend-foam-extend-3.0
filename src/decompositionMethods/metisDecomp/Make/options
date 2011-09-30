@@ -1,11 +1,11 @@
 include $(RULES)/mplib$(WM_MPLIB)
 
 EXE_INC = \
-    $(PINC) \
-    -I/usr/include/metis \
+    $(PFLAGS) $(PINC) \
+    -I$(METIS_INCLUDE_DIR) \
     -I../decompositionMethods/lnInclude \
     -I../scotchDecomp/lnInclude
 
 LIB_LIBS = \
     -L$(FOAM_LIBBIN)/dummy \
-    -lmetis
+    -L$(METIS_LIB_DIR) -lmetis

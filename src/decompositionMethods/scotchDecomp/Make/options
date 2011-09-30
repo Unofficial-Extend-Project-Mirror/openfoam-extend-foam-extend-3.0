@@ -1,6 +1,7 @@
 EXE_INC = \
     -I$(SCOTCH_INCLUDE_DIR) \
-    -I../decompositionMethods/lnInclude
+    -I../decompositionMethods/lnInclude \
+    -DOMPI_SKIP_MPICXX
 
 LIB_LIBS = \
     -L$(SCOTCH_LIB_DIR) -lscotch \
