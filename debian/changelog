@@ -1,3 +1,9 @@
+openfoam-1.6-ext (1.6.0-1ppa1~maverick1) maverick; urgency=low
+
+  * Initial build for maverick.
+
+ -- Henrik Rusche <h.rusche@wikki-gmbh.de>  Fri, 1 Oct 2011 12:42:45 +0100
+
 openfoam-1.6-ext (1.6.0-1ppa1~lucid1) lucid; urgency=low
 
   * Initial build for lucid.
