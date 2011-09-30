@@ -60,12 +60,6 @@ const NamedEnum<cyclicPolyPatch::transformType, 3>
 }
 
 
-const Foam::scalar Foam::cyclicPolyPatch::areaMatchTol
-(
-    debug::tolerances("cyclicMatchTol", 1e-4)
-);
-
-
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 Foam::label Foam::cyclicPolyPatch::findMaxArea
@@ -260,26 +254,30 @@ void Foam::cyclicPolyPatch::calcTransforms()
         // Dump transformed first half
         if (debug)
         {
-            fileName fvPath(boundaryMesh().mesh().time().path()/"VTK");
-
-            pointField transformPoints = half0.localPoints();
-
-            forAll (transformPoints, pointI)
+            if (reverseT_.size() > 0)
             {
-                 transformPoints[pointI] =
-                     Foam::transform(reverseT_[0], transformPoints[pointI]);
+                fileName fvPath(boundaryMesh().mesh().time().path()/"VTK");
+
+                pointField transformPoints = half0.localPoints();
+
+                forAll (transformPoints, pointI)
+                {
+                    transformPoints[pointI] =
+                        Foam::transform(reverseT_[0], transformPoints[pointI]);
+                }
+
+                standAlonePatch transformHalf0
+                (
+                    half0.localFaces(),
+                    transformPoints
+                );
+
+                fileName nm2(fvPath/name() + "_transform_half0_faces");
+                Pout<< "cyclicPolyPatch::calcTransforms : Writing "
+                    << "transform_half0 faces to file " << nm2 << endl;
+
+                transformHalf0.writeVTK(nm2, transformHalf0, transformPoints);
             }
-
-            standAlonePatch transformHalf0
-            (
-                half0.localFaces(),
-                transformPoints
-            );
-
-            fileName nm2(fvPath/name() + "_transform_half0_faces");
-            Pout<< "cyclicPolyPatch::calcTransforms : Writing transform_half0"
-                << " faces to file " << nm2 << endl;
-            transformHalf0.writeVTK(nm2, transformHalf0, transformPoints);
         }
 
         // Check for error in face matching
@@ -313,7 +311,8 @@ void Foam::cyclicPolyPatch::calcTransforms()
                 << endl
                 << "Other errors also exist, only the largest is reported. "
                 << "Please rerun with cyclic debug flag set"
-                << " for more information." << exit(FatalError);
+                << " for more information."
+                << abort(FatalError);
         }
 
         if (debug)
@@ -354,37 +353,39 @@ void Foam::cyclicPolyPatch::calcTransforms()
                 }
                 else
                 {
-                    maxDistance =
-                        Foam::max
-                        (
-                            maxDistance,
-                            mag
-                            (
-                                half0Ctrs[faceI]
-                              - half1Ctrs[faceI]
-                            )
-                        );
+                    // Disable checking for translational distance
+                    // HJ, 13/Jan/2011
+//                     maxDistance =
+//                         Foam::max
+//                         (
+//                             maxDistance,
+//                             mag
+//                             (
+//                                 half0Ctrs[faceI]
+//                               - half1Ctrs[faceI]
+//                             )
+//                         );
 
-                    maxRelDistance =
-                        Foam::max
-                        (
-                            maxRelDistance,
-                            mag
-                            (
-                                half0Ctrs[faceI]
-                              - half1Ctrs[faceI]
-                            )
-                           /(
-                               mag(half1Ctrs[faceI] - half0Ctrs[faceI])
-                             + SMALL
-                            )
-                        );
+//                     maxRelDistance =
+//                         Foam::max
+//                         (
+//                             maxRelDistance,
+//                             mag
+//                             (
+//                                 half0Ctrs[faceI]
+//                               - half1Ctrs[faceI]
+//                             )
+//                            /(
+//                                mag(half1Ctrs[faceI] - half0Ctrs[faceI])
+//                              + SMALL
+//                             )
+//                         );
                 }
             }
 
             // Check max distance between face centre and
             // transformed face centre
-            if (maxRelDistance > sqrt(areaMatchTol))
+            if (maxRelDistance > sqrt(polyPatch::matchTol_))
             {
                 SeriousErrorIn
                 (
@@ -944,6 +945,18 @@ Foam::cyclicPolyPatch::~cyclicPolyPatch()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
+void Foam::cyclicPolyPatch::initAddressing()
+{
+    polyPatch::initAddressing();
+}
+
+
+void Foam::cyclicPolyPatch::calcAddressing()
+{
+    polyPatch::calcAddressing();
+}
+
+
 void Foam::cyclicPolyPatch::initGeometry()
 {
     polyPatch::initGeometry();
@@ -953,6 +966,7 @@ void Foam::cyclicPolyPatch::initGeometry()
 void Foam::cyclicPolyPatch::calcGeometry()
 {
     polyPatch::calcGeometry();
+
     calcTransforms();
 }
 

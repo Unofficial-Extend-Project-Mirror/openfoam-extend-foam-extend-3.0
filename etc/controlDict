@@ -37,7 +37,8 @@ DebugSwitches
     BlockLduMatrix  1;
 
     CircumferentialAveragingInterpolation 0;
-    mixingPlanePolyPatch                  1;
+    mixingPlane                           0;
+    MixingPlaneInterpolation              0;
 
     overlapGgi          0;
     cyclicGgi           0;
@@ -120,6 +121,7 @@ DebugSwitches
     Gidaspow            0;
     GidaspowErgunWenYu  0;
     GidaspowSchillerNaumann 0;
+    ggi                 0;
     GradientDispersionRAS   0;
     Gulders             0;
     GuldersEGR          0;
@@ -410,6 +412,7 @@ DebugSwitches
     exponential         0;
     extendedLeastSquares    0;
     extendedLeastSquaresVectors 0;
+    faMesh              0;
     face                0;
     faceAreaPair        0;
     faceCoupleInfo      0;
@@ -470,7 +473,7 @@ DebugSwitches
     genericPatch        0;
     geomCellLooper      0;
     geometricSurfacePatch   0;
-    ggi                 0;
+    GGIInterpolation    0;
     global              0;
     globalMeshData      0;
     globalPoints        0;
@@ -904,8 +907,7 @@ Tolerances
     primitiveMeshFaceFlatnessThreshold 0.8;
 
     // Geometric matching tolerances
-    cyclicMatchTol      1e-4;
-    processorMatchTol   1e-4;
+    patchFaceMatchTol   1e-4;
 
     // Volumetric closed domain
     closedDomainTol     1e-10;

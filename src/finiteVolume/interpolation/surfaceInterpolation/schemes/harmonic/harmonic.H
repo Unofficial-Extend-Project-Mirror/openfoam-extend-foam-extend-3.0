@@ -42,7 +42,6 @@ SourceFiles
 #include "surfaceInterpolationScheme.H"
 #include "volFields.H"
 #include "surfaceFields.H"
-#include "reverseLinear.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -53,9 +52,10 @@ namespace Foam
                            Class harmonic Declaration
 \*---------------------------------------------------------------------------*/
 
+template<class Type>
 class harmonic
 :
-    public surfaceInterpolationScheme<scalar>
+    public surfaceInterpolationScheme<Type>
 {
     // Private Member Functions
 
@@ -74,10 +74,10 @@ public:
         //- Construct from mesh
         harmonic(const fvMesh& mesh)
         :
-            surfaceInterpolationScheme<scalar>(mesh)
+            surfaceInterpolationScheme<Type>(mesh)
         {}
 
-        //- Construct from Istream. 
+        //- Construct from Istream
         //  The name of the flux field is read from the Istream and looked-up
         //  from the mesh objectRegistry
         harmonic
@@ -86,7 +86,7 @@ public:
             Istream& is
         )
         :
-            surfaceInterpolationScheme<scalar>(mesh)
+            surfaceInterpolationScheme<Type>(mesh)
         {}
 
         //- Construct from faceFlux and Istream
@@ -97,7 +97,7 @@ public:
             Istream& is
         )
         :
-            surfaceInterpolationScheme<scalar>(mesh)
+            surfaceInterpolationScheme<Type>(mesh)
         {}
 
 
@@ -106,26 +106,90 @@ public:
         //- Return the interpolation weighting factors
         virtual tmp<surfaceScalarField> weights
         (
-            const GeometricField<scalar, fvPatchField, volMesh>&
+            const GeometricField<Type, fvPatchField, volMesh>& phi
         ) const
         {
-            notImplemented
+            tmp<surfaceScalarField> tw
             (
-                "harmonic::weights"
-                "(const GeometricField<scalar, fvPatchField, volMesh>&)"
+                new surfaceScalarField
+                (
+                    IOobject
+                    (
+                        "harmonicWeightingFactors" + phi.name(),
+                        this->mesh().time().timeName(),
+                        this->mesh()
+                    ),
+                    this->mesh() ,
+                    dimless
+                )
             );
 
-            return tmp<surfaceScalarField>(NULL);
-        }
+            surfaceScalarField& w = tw();
 
-        //- Return the face-interpolate of the given cell field
-        virtual tmp<GeometricField<scalar, fvsPatchField, surfaceMesh> >
-        interpolate
-        (
-            const GeometricField<scalar, fvPatchField, volMesh>& vf
-        ) const
-        {
-            return 1.0/(reverseLinear<scalar>(vf.mesh()).interpolate(1.0/vf));
+            const unallocLabelList& owner = this->mesh().owner();
+            const unallocLabelList& neighbour = this->mesh().neighbour();
+
+            scalarField magPhi = mag(phi);
+
+            scalarField& wIn = w.internalField();
+
+            // Calculate internal weights using field magnitude
+            forAll (owner, faceI)
+            {
+                scalar mOwn = magPhi[owner[faceI]];
+                scalar mNei = magPhi[neighbour[faceI]];
+
+                scalar den = mOwn - mNei;
+
+                if (mag(den) > SMALL)
+                {
+                    scalar mean = 2.0*mOwn*mNei/(mOwn + mNei);
+                    wIn[faceI] = (mean - mNei)/den;
+                }
+                else
+                {
+                    wIn[faceI] = 0.5;
+                }
+            }
+
+            forAll (phi.boundaryField(), pi)
+            {
+                fvsPatchScalarField& wp = w.boundaryField()[pi];
+
+                const fvPatchField<Type>& patchPhi = phi.boundaryField()[pi];
+
+                if (patchPhi.coupled())
+                {
+                    scalarField magPhiOwn = mag(patchPhi.patchInternalField());
+                    scalarField magPhiNei = mag(patchPhi.patchNeighbourField());
+
+                    // Calculate internal weights using field magnitude
+                    forAll (patchPhi, faceI)
+                    {
+                        scalar mOwn = magPhiOwn[faceI];
+                        scalar mNei = magPhiNei[faceI];
+
+                        scalar den = mOwn - mNei;
+
+                        if (mag(den) > SMALL)
+                        {
+                             scalar mean = 2.0*mOwn*mNei/(mOwn + mNei);
+                             wp[faceI] = (mean - mNei)/den;
+                        }
+                        else
+                        {
+                             wp[faceI] = 0.5;
+                        }
+                    }
+                }
+                else
+                {
+                    // Boundary weights for uncoupled patches are 1
+                    wp = 1;
+                }
+            }
+
+            return tw;
         }
 };
 
