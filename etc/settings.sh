@@ -202,7 +202,6 @@ OPENMPI)
         then
             echo "Using openmpi-1.4.3 from the ThirdParty package: $WM_THIRD_PARTY_DIR/packages/$mpi_version"
         fi
-        mpi_version=openmpi-1.4.3
         _foamSource  $WM_THIRD_PARTY_DIR/packages/$mpi_version/platforms/$WM_OPTIONS/etc/$mpi_version.sh
 
     elif [ -e $WM_THIRD_PARTY_DIR/packages/openmpi-1.5/platforms/$WM_OPTIONS ]
@@ -212,14 +211,7 @@ OPENMPI)
         then
             echo "Using openmpi-1.5 from the ThirdParty package: $WM_THIRD_PARTY_DIR/packages/$mpi_version"
         fi
-        mpi_version=openmpi-1.4.1
         _foamSource  $WM_THIRD_PARTY_DIR/packages/$mpi_version/platforms/$WM_OPTIONS/etc/$mpi_version.sh
-
-        export MPI_HOME=$WM_THIRD_PARTY_DIR/packages/$mpi_version/platforms/$WM_OPTIONS
-        export MPI_ARCH_PATH=$MPI_HOME
-
-        # Tell OpenMPI where to find its install directory
-        export OPAL_PREFIX=$MPI_ARCH_PATH
     fi
 
     export FOAM_MPI_LIBBIN=$FOAM_LIBBIN/$mpi_version
