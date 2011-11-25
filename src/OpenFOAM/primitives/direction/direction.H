@@ -41,7 +41,7 @@ Description
 
 namespace Foam
 {
-    typedef unsigned char direction;
+    typedef unsigned int direction;
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
