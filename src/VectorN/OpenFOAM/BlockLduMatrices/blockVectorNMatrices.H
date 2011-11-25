@@ -49,7 +49,8 @@ namespace Foam
 #define makeTypedef(type, Type, args...)                \
     typedef BlockLduMatrix<type > block##Type##Matrix;
 
-forAllVectorNTypes(makeTypedef)
+#define MacroArgs makeTypedef
+#include "forAllVectorNTypes.H"
 
 #undef makeTypedef
 

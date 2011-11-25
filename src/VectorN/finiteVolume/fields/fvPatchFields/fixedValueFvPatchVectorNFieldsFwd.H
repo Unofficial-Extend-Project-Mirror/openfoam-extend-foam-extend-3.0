@@ -41,13 +41,8 @@ template<class Type> class fixedValueFvPatchField;
 #define makeTypedef(type, Type, args...)                                \
     typedef fixedValueFvPatchField<type> fixedValueFvPatch##Type##Field;
 
-forAllVectorNTypes(makeTypedef)
-
-forAllTensorNTypes(makeTypedef)
-
-forAllDiagTensorNTypes(makeTypedef)
-
-forAllSphericalTensorNTypes(makeTypedef)
+#define MacroArgs makeTypedef
+#include "allForAllNTypes.H"
 
 #undef makeTypedef
 

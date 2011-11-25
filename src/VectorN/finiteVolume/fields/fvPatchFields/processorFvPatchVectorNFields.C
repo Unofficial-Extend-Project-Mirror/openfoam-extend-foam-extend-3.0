@@ -95,7 +95,8 @@ void processorFvPatchField<Type>::updateInterfaceMatrix                         
                                                                                 \
     makePatchTypeField(fvPatch##Type##Field, processorFvPatch##Type##Field);
 
-forAllVectorNTypes(doMakePatchTypeField)
+#define MacroArgs doMakePatchTypeField
+#include "forAllVectorNTypes.H"
 
 #undef doMakePatchTypeField
 

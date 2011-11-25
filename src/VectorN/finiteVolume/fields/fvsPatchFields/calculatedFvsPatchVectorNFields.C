@@ -38,13 +38,8 @@ namespace Foam
 #define doMakeFvsPatchTypeField(type, Type, args...)                          \
     makeFvsPatchTypeField(fvsPatch##Type##Field, calculatedFvsPatch##Type##Field);
 
-forAllVectorNTypes(doMakeFvsPatchTypeField)
-
-forAllTensorNTypes(doMakeFvsPatchTypeField)
-
-forAllDiagTensorNTypes(doMakeFvsPatchTypeField)
-
-forAllSphericalTensorNTypes(doMakeFvsPatchTypeField)
+#define MacroArgs doMakeFvsPatchTypeField
+#include "allForAllNTypes.H"
 
 #undef doMakeFvsPatchTypeField
 

@@ -39,13 +39,8 @@ namespace Foam
                                                                 \
     defineTemplateTypeNameAndDebug(surface##Type##Field, 0);
 
-forAllVectorNTypes(doMakeSurfaceFields)
-
-forAllTensorNTypes(doMakeSurfaceFields)
-
-forAllDiagTensorNTypes(doMakeSurfaceFields)
-
-forAllSphericalTensorNTypes(doMakeSurfaceFields)
+#define MacroArgs doMakeSurfaceFields
+#include "allForAllNTypes.H"
 
 #undef doMakeSurfaceFields
 

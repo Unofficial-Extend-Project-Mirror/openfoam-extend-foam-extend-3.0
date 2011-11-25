@@ -50,13 +50,8 @@ namespace Foam
 #define doMakeTypedef(type, Type, args...)      \
     typedef dimensioned<type> dimensioned##Type;
 
-forAllVectorNTypes(doMakeTypedef)
-
-forAllTensorNTypes(doMakeTypedef)
-
-forAllDiagTensorNTypes(doMakeTypedef)
-
-forAllSphericalTensorNTypes(doMakeTypedef)
+#define MacroArgs doMakeTypedef
+#include "allForAllNTypes.H"
 
 #undef doMakeTypedef
 
@@ -107,7 +102,8 @@ BINARY_OPERATOR(diagTensorType, diagTensorType, sphericalTensorType, operator-, 
 BINARY_OPERATOR(diagTensorType, sphericalTensorType, diagTensorType, operator-, -)
                                                                                     
 
-forAllVectorTensorNTypes(dimensionedType_Funs)
+#define MacroArgs dimensionedType_Funs
+#include "forAllVectorTensorNFunctions.H"
 
 #undef dimensionedType_Funs
 #undef UNARY_FUNCTION

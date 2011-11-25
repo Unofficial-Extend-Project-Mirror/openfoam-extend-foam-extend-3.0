@@ -75,7 +75,8 @@ namespace Foam
 
 // * * * * * * * * * * * * * * * Global Functions  * * * * * * * * * * * * * //
 
-forAllVectorTensorNTypes(ExpandFieldFunctions)
+#define MacroArgs ExpandFieldFunctions
+#include "forAllVectorTensorNFunctions.H"
 
 
 // template <class Cmpt, int length>

@@ -39,13 +39,8 @@ namespace Foam
                                                                 \
     defineTemplateTypeNameAndDebug(vol##Type##Field, 0);
 
-forAllVectorNTypes(doMakeVolFields)
-
-forAllTensorNTypes(doMakeVolFields)
-
-forAllDiagTensorNTypes(doMakeVolFields)
-
-forAllSphericalTensorNTypes(doMakeVolFields)
+#define MacroArgs doMakeVolFields
+#include "allForAllNTypes.H"
 
 #undef doMakeVolFields
 

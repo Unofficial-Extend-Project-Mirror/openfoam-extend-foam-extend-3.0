@@ -81,7 +81,8 @@ void cyclicFvPatchField<Type>::updateInterfaceMatrix							\
                                                                                 \
     makePatchTypeField(fvPatch##Type##Field, cyclicFvPatch##Type##Field);
 
-forAllVectorNTypes(doMakePatchTypeField)
+#define MacroArgs doMakePatchTypeField
+#include "forAllVectorNTypes.H"
 
 #undef doMakePatchTypeField
 

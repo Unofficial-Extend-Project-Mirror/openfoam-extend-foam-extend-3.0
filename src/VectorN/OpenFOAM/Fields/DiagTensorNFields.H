@@ -88,7 +88,8 @@ BINARY_TYPE_OPERATOR(diagTensorType, diagTensorType, sphericalTensorType, -, sub
 namespace Foam
 {
 
-forAllVectorTensorNTypes(DiagTensorN_FieldFunctions)
+#define MacroArgs DiagTensorN_FieldFunctions
+#include "forAllVectorTensorNFunctions.H"
 
 }
 

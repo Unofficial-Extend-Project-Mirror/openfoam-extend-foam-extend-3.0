@@ -57,13 +57,8 @@ class GeometricField;
 #define doMakeTypedefs(type, Type, args...)         \
     typedef GeometricField<type, fvsPatchField, surfaceMesh> surface##Type##Field;
 
-forAllVectorNTypes(doMakeTypedefs)
-
-forAllTensorNTypes(doMakeTypedefs)
-
-forAllDiagTensorNTypes(doMakeTypedefs)
-
-forAllSphericalTensorNTypes(doMakeTypedefs)
+#define MacroArgs doMakeTypedefs
+#include "allForAllNTypes.H"
 
 #undef doMakeTypedefs
 

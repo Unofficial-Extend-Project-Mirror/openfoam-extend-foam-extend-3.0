@@ -41,13 +41,8 @@ template<class Type> class wedgeFvPatchField;
 #define makeTypedef(type, Type, args...)                                \
     typedef wedgeFvPatchField<type> wedgeFvPatch##Type##Field;
 
-forAllVectorNTypes(makeTypedef)
-
-forAllTensorNTypes(makeTypedef)
-
-forAllDiagTensorNTypes(makeTypedef)
-
-forAllSphericalTensorNTypes(makeTypedef)
+#define MacroArgs makeTypedef
+#include "allForAllNTypes.H"
 
 #undef makeTypedef
 

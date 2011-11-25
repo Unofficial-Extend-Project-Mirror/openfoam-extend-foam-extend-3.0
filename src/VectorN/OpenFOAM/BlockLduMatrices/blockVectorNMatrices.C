@@ -42,7 +42,8 @@ namespace Foam
 #define makeNamedTemplateTypeNameAndDebug(type, Type, args...)      \
     defineNamedTemplateTypeNameAndDebug(block##Type##Matrix, 0);
 
-forAllVectorNTypes(makeNamedTemplateTypeNameAndDebug);
+#define MacroArgs makeNamedTemplateTypeNameAndDebug
+#include "forAllVectorNTypes.H"
 
 #undef makeNamedTemplateTypeNameAndDebug
 

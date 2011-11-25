@@ -89,7 +89,8 @@ tmp<Field<diagTensorType> > transformFieldMask<diagTensorType>                  
 namespace Foam
 {
 
-forAllVectorTensorNTypes(DiagTensorN_FieldFunctions)
+#define MacroArgs DiagTensorN_FieldFunctions
+#include "forAllVectorTensorNFunctions.H"
 
 }
 

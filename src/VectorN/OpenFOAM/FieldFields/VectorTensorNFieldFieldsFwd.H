@@ -49,13 +49,8 @@ class FieldField;
 #define makeTypedef(Type, args...)                      \
     typedef FieldField<Field, Type > Type##FieldField;
 
-forAllVectorNTypes(makeTypedef)
-
-forAllTensorNTypes(makeTypedef)
-
-forAllDiagTensorNTypes(makeTypedef)
-
-forAllSphericalTensorNTypes(makeTypedef)
+#define MacroArgs makeTypedef
+#include "allForAllNTypes.H"
 
 #undef makeTypedef
 

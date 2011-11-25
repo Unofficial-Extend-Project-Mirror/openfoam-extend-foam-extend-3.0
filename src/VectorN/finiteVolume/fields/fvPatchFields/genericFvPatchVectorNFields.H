@@ -40,13 +40,8 @@ namespace Foam
 #define doMakeTypedef(type, Type, args...)                                \
     typedef genericFvPatchField<type > genericFvPatch##Type##Field;
 
-forAllVectorNTypes(doMakeTypedef)
-
-forAllTensorNTypes(doMakeTypedef)
-
-forAllDiagTensorNTypes(doMakeTypedef)
-
-forAllSphericalTensorNTypes(doMakeTypedef)
+#define MacroArgs doMakeTypedef
+#include "allForAllNTypes.H"
 
 #undef doMakeTypedef
 

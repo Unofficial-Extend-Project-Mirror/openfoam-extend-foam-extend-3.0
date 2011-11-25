@@ -108,7 +108,8 @@ BINARY_TYPE_OPERATOR(tensorType, tensorType, sphericalTensorType, -, subtract)
 namespace Foam
 {
 
-forAllVectorTensorNTypes(TensorN_FieldFunctions)
+#define MacroArgs TensorN_FieldFunctions
+#include "forAllVectorTensorNFunctions.H"
 
 }
 

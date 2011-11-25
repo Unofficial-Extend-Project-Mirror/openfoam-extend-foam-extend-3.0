@@ -39,10 +39,8 @@ namespace Foam
     defineCompoundTypeName(List<type>, Type##List);                     \
     addCompoundToRunTimeSelectionTable(List<type>, type##List);
 
-forAllVectorNTypes(makeListType)
-forAllTensorNTypes(makeListType)
-forAllDiagTensorNTypes(makeListType)
-forAllSphericalTensorNTypes(makeListType)
+#define MacroArgs makeListType
+#include "allForAllNTypes.H"
 
 #undef makeListType
 

@@ -46,13 +46,8 @@ template<class Type> class coupledFvsPatchField;
 #define doMakeTypedef(type, Type, args...)                                  \
     typedef coupledFvsPatchField<type > coupledFvsPatch##Type##Field;
 
-forAllVectorNTypes(doMakeTypedef)
-
-forAllTensorNTypes(doMakeTypedef)
-
-forAllDiagTensorNTypes(doMakeTypedef)
-
-forAllSphericalTensorNTypes(doMakeTypedef)
+#define MacroArgs doMakeTypedef
+#include "allForAllNTypes.H"
 
 #undef doMakeTypedef
 

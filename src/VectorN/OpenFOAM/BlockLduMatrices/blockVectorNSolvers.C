@@ -123,8 +123,8 @@ makeBlockSolverTypeName(block##Type##GMRESSolver);                            \
 addSolverToBlockMatrix(Type, block##Type##GMRESSolver, symMatrix);            \
 addSolverToBlockMatrix(Type, block##Type##GMRESSolver, asymMatrix);
 
-
-forAllVectorNTypes(makeSolver)
+#define MacroArgs makeSolver
+#include "forAllVectorNTypes.H"
 
 #undef makeSolver
 

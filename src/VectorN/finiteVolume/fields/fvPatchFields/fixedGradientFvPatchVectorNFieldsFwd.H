@@ -41,13 +41,8 @@ template<class Type> class fixedGradientFvPatchField;
 #define makeTypedef(type, Type, args...)                                \
     typedef fixedGradientFvPatchField<type> fixedGradientFvPatch##Type##Field;
 
-forAllVectorNTypes(makeTypedef)
-
-forAllTensorNTypes(makeTypedef)
-
-forAllDiagTensorNTypes(makeTypedef)
-
-forAllSphericalTensorNTypes(makeTypedef)
+#define MacroArgs makeTypedef
+#include "allForAllNTypes.H"
 
 #undef makeTypedef
 

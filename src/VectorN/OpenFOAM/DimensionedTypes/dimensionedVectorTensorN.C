@@ -84,7 +84,8 @@ BINARY_OPERATOR(tensorType, sphericalTensorType, tensorType, operator-, -)      
 BINARY_OPERATOR(diagTensorType, diagTensorType, sphericalTensorType, operator-, -)  \
 BINARY_OPERATOR(diagTensorType, sphericalTensorType, diagTensorType, operator-, -)
 
-forAllVectorTensorNTypes(dimensionedType_Funs)
+#define MacroArgs dimensionedType_Funs
+#include "forAllVectorTensorNFunctions.H"
 
 #undef dimensionedType_Funs
 #undef UNARY_FUNCTION

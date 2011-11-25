@@ -48,13 +48,8 @@ defineTemplateRunTimeSelectionTable(fvsPatchTypeField, dictionary);
 #define doMakeFvsPatchField(type, Type, args...)    \
     makeFvsPatchField(fvsPatch##Type##Field)
 
-forAllVectorNTypes(doMakeFvsPatchField)
-
-forAllTensorNTypes(doMakeFvsPatchField)
-
-forAllDiagTensorNTypes(doMakeFvsPatchField)
-
-forAllSphericalTensorNTypes(doMakeFvsPatchField)
+#define MacroArgs doMakeFvsPatchField
+#include "allForAllNTypes.H"
 
 #undef makeFvsPatchField
 #undef doMakeFvsPatchField

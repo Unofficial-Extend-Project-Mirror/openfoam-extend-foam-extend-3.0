@@ -59,13 +59,8 @@ defineTemplateRunTimeSelectionTable                                           \
     makeSurfaceInterpolationTypeScheme(linear, type)                          \
     makeSurfaceInterpolationTypeScheme(reverseLinear, type)
 
-forAllVectorNTypes(doMakeSchemes)
-
-forAllTensorNTypes(doMakeSchemes)
-
-forAllDiagTensorNTypes(doMakeSchemes)
-
-forAllSphericalTensorNTypes(doMakeSchemes)
+#define MacroArgs doMakeSchemes
+#include "allForAllNTypes.H"
 
 #undef doMakeSchemes
 

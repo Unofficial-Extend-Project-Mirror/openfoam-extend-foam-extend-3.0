@@ -41,7 +41,8 @@ template<class Type> class cyclicFvPatchField;
 #define makeTypedef(type, Type, args...)                                \
     typedef cyclicFvPatchField<type> cyclicFvPatch##Type##Field;
 
-forAllVectorNTypes(makeTypedef)
+#define MacroArgs makeTypedef
+#include "forAllVectorNTypes.H"
 
 #undef makeTypedef
 

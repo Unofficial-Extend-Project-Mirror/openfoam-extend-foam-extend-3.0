@@ -53,13 +53,8 @@ template<>                                                          \
 tmp<Field<type > > wedgeFvPatchField<type >::snGradTransformDiag()  \
 const;
 
-forAllVectorNTypes(doMakeVectorTensorNWedgeFuncDefs)
-
-forAllTensorNTypes(doMakeVectorTensorNWedgeFuncDefs)
-
-forAllDiagTensorNTypes(doMakeVectorTensorNWedgeFuncDefs)
-
-forAllSphericalTensorNTypes(doMakeVectorTensorNWedgeFuncDefs)
+#define MacroArgs doMakeVectorTensorNWedgeFuncDefs
+#include "allForAllNTypes.H"
 
 #undef doMakeVectorTensorNWedgeFuncDefs
 

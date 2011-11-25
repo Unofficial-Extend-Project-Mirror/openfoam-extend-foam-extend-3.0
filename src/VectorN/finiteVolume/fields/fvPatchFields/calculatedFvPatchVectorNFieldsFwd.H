@@ -41,13 +41,8 @@ template<class Type> class calculatedFvPatchField;
 #define makeTypedef(type, Type, args...)                                    \
     typedef calculatedFvPatchField<type> calculatedFvPatch##Type##Field;
 
-forAllVectorNTypes(makeTypedef)
-
-forAllTensorNTypes(makeTypedef)
-
-forAllDiagTensorNTypes(makeTypedef)
-
-forAllSphericalTensorNTypes(makeTypedef)
+#define MacroArgs makeTypedef
+#include "allForAllNTypes.H"
 
 #undef makeTypedef
 

@@ -44,7 +44,8 @@ namespace Foam
 #define makeTemplateTypeNameAndDebug(type, Type, args...)      \
     defineTemplateTypeNameAndDebug(BlockLduInterfaceField<type>, 0);
 
-forAllVectorNTypes(makeTemplateTypeNameAndDebug);
+#define MacroArgs makeTemplateTypeNameAndDebug
+#include "allForAllNTypes.H"
 
 #undef makeTemplateTypeNameAndDebug
 

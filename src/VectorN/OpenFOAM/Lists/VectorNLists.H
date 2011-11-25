@@ -44,10 +44,8 @@ namespace Foam
 #define makeListTypeDef(type, Type, args...)  \
     typedef List<type> type##List;
 
-forAllVectorNTypes(makeListTypeDef)
-forAllTensorNTypes(makeListTypeDef)
-forAllDiagTensorNTypes(makeListTypeDef)
-forAllSphericalTensorNTypes(makeListTypeDef)
+#define MacroArgs makeListTypeDef
+#include "allForAllNTypes.H"
 
 #undef makeListTypeDef
 

@@ -37,13 +37,8 @@ namespace Foam
 #define makePatch(type, Type, args...)                                        \
     defineNamedTemplateTypeNameAndDebug(transformFvPatch##Type##Field, 0);
 
-forAllVectorNTypes(makePatch)
-
-forAllTensorNTypes(makePatch)
-
-forAllDiagTensorNTypes(makePatch)
-
-forAllSphericalTensorNTypes(makePatch)
+#define MacroArgs makePatch
+#include "allForAllNTypes.H"
 
 #undef makePatch
 

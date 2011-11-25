@@ -122,7 +122,8 @@ tmp<Field<tensorType> > transformFieldMask<tensorType>                       \
 namespace Foam
 {
 
-forAllVectorTensorNTypes(TensorN_FieldFunctions)
+#define MacroArgs TensorN_FieldFunctions
+#include "forAllVectorTensorNFunctions.H"
 
 }
 
