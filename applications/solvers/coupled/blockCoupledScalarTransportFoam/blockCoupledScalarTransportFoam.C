@@ -52,6 +52,15 @@ Description
 int main(int argc, char *argv[])
 {
 
+#   ifndef VECTORN_2
+#       warning blockCoupledScalarTransportFoam will not compile properly. \
+                Requires Vector2 instantiation in VectorN library.
+        FatalErrorIn("blockCoupledScalarTransportFoam::main")
+            << "Requires Vector2 instantiation from VectorN library. Compile "
+            << "VectorN with VECTORN_2 defined and try again."
+            << abort(FatalError);
+#   else
+
 #   include "setRootCase.H"
 #   include "createTime.H"
 #   include "createMesh.H"
@@ -170,6 +179,7 @@ int main(int argc, char *argv[])
 
     Info<< "End\n" << endl;
 
+#   endif
     return(0);
 }
 
