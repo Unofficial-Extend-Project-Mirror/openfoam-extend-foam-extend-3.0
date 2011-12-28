@@ -322,6 +322,6 @@ Description
 /* If VECTORSPACE_PARTIAL is defined, use a number between 2 and 255 below
  */
  
-#define VECTORSPACE_UNROLLN 32 /*default is 32*/
+#define VECTORSPACE_UNROLLN 16 /*default is 16*/
 
 #include "customUserDefineConditionals.H"

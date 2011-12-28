@@ -133,7 +133,7 @@ class VectorSpaceOps
 {
 public:
 
-    static const int unrollN = 4;
+    static const int unrollN = VECTORSPACE_UNROLLN;
     static const int nOuter = N / unrollN;
     static const int nRemain = N % unrollN;
 
