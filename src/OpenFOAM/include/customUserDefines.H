@@ -309,17 +309,20 @@ Description
  *   * note: If using VECTORSPACE_PARTIAL, you must also define
  *      VECTORSPACE_UNROLLN as an integer between 2 and 255.  A lower number
  *      means more metaprogramming, and a higher number means less.  A value of
- *      1 is essentially the same as VECTORSPACE_FULL, whereas a value of
- *      255 is very close to VECTORSPACE_FORLOOPS.
+ *      255 is essentially the same as VECTORSPACE_FULL, whereas a value of
+ *      1 is very close to VECTORSPACE_FORLOOPS. VECTORSPACE_UNROLLN should
+ *      be less than the maximum instantiation depth for template classes to
+ *      avoid compiler errors
  */
 
 // UNCOMMENT ONLY ONE OF THESE
 
-//#define VECTORSPACE_FORLOOPS
+// #define VECTORSPACE_FORLOOPS
 #define VECTORSPACE_PARTIAL /*default*/
-//#define VECTORSPACE_FULL
+// #define VECTORSPACE_FULL
 
-/* If VECTORSPACE_PARTIAL is defined, use a number between 2 and 255 below
+/*
+ * If VECTORSPACE_PARTIAL is defined, use a number between 2 and 255 below
  */
  
 #define VECTORSPACE_UNROLLN 16 /*default is 16*/
