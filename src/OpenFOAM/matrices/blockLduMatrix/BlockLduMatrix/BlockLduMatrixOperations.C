@@ -994,7 +994,7 @@ void Foam::BlockLduMatrix<Type>::operator-=(const BlockLduMatrix<Type>& A)
         upper() -= A.upper();
     }
     else if (diagonal())
-    {
+    {        
         if (A.upperPtr_)
         {
             upper() = -A.upper();
@@ -1004,6 +1004,7 @@ void Foam::BlockLduMatrix<Type>::operator-=(const BlockLduMatrix<Type>& A)
         {
             lower() = -A.lower();
         }
+        
     }
     else if (A.diagonal())
     {
