@@ -109,6 +109,18 @@ blockLaplacianScheme<Type, GType>::fvmLaplacian
 }
 
 
+template<class Type, class GType>
+tmp<GeometricField<Type, fvPatchField, volMesh> >
+blockLaplacianScheme<Type, GType>::fvcLaplacian
+(
+    const GeometricField<GType, fvPatchField, volMesh>& gamma,
+    const GeometricField<Type, fvPatchField, volMesh>& vf
+)
+{
+    return fvcLaplacian(tinterpGammaScheme_().interpolate(gamma)(), vf);
+}
+
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace fv

@@ -704,13 +704,16 @@ blockFvMatrix<Type>::flux() const
         
     //- Boundary diagonal contribution
     forAll(psi_.boundaryField(), patchI)
-    {        
+    {
+        fieldFlux.boundaryField()[patchI]
+            -= BlockLduMatrix<scalar>::interfaceSource()[patchI];
+
         //- Coupled Boundaries off-diagonal contribution
         if (psi_.boundaryField()[patchI].coupled())
         {
             Field<Type>& pFieldFlux = fieldFlux.boundaryField()[patchI];
-            
-            CoeffField<Type>& pCoupleUpper
+        
+            const CoeffField<Type>& pCoupleUpper
                 = BlockLduMatrix<scalar>::coupleUpper()[patchI];
             
             if (pCoupleUpper.activeType() == blockCoeffBase::SCALAR)
@@ -734,7 +737,7 @@ blockFvMatrix<Type>::flux() const
                   & psi_.boundaryField()[patchI].patchNeighbourField()
                 );
             }
-        }
+        }        
     }
 
     if (faceFluxCorrectionPtr_)

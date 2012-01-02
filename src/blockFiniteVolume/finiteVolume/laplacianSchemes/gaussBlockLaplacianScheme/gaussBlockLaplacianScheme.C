@@ -29,6 +29,7 @@ License
 #include "fvcDiv.H"
 #include "fvcGrad.H"
 #include "blockFvMatrices.H"
+#include "scalar.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -41,6 +42,7 @@ namespace fv
 {
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
 
 template<class Type, class GType>
 tmp<blockFvMatrix<Type> >
@@ -75,7 +77,7 @@ gaussBlockLaplacianScheme<Type, GType>::fvmLaplacianUncorrected
 
         fvm.interfaceDiag()[patchI] = patchGamma*psf.gradientInternalCoeffs();
         fvm.interfaceSource()[patchI] = -patchGamma*psf.gradientBoundaryCoeffs();
-        
+
         if(psf.coupled())
         {
             fvm.coupleUpper()[patchI] = -patchGamma*psf.gradientUpperCoeffs();
@@ -169,6 +171,56 @@ gaussBlockLaplacianScheme<Type, GType>::fvmLaplacian
     return tfvm;
 }
 
+
+template<class Type, class GType>
+tmp<GeometricField<Type, fvPatchField, volMesh> >
+gaussBlockLaplacianScheme<Type, GType>::fvcLaplacian
+(
+    const GeometricField<Type, fvPatchField, volMesh>& vf
+)
+{
+    const fvMesh& mesh = this->mesh();
+
+    tmp<GeometricField<Type, fvPatchField, volMesh> > tLaplacian
+    (
+        fvc::div(this->tsnGradScheme_().snGrad(vf)*mesh.magSf())
+    );
+
+    tLaplacian().rename("laplacian(" + vf.name() + ')');
+
+    return tLaplacian;
+}
+
+
+template<class Type, class GType>
+tmp<GeometricField<Type, fvPatchField, volMesh> >
+gaussBlockLaplacianScheme<Type, GType>::fvcLaplacian
+(
+    const GeometricField<GType, fvsPatchField, surfaceMesh>& gamma,
+    const GeometricField<Type, fvPatchField, volMesh>& vf
+)
+{
+    const fvMesh& mesh = this->mesh();
+
+    surfaceVectorField Sn = mesh.Sf()/mesh.magSf();
+
+    surfaceVectorField SfGamma = mesh.Sf() & gamma;
+    GeometricField<scalar, fvsPatchField, surfaceMesh> SfGammaSn = SfGamma & Sn;
+    surfaceVectorField SfGammaCorr = SfGamma - SfGammaSn*Sn;
+
+    tmp<GeometricField<Type, fvPatchField, volMesh> > tLaplacian
+    (
+        fvc::div
+        (
+            SfGammaSn*this->tsnGradScheme_().snGrad(vf)
+          + gammaSnGradCorr(SfGammaCorr, vf)
+        )
+    );
+
+    tLaplacian().rename("laplacian(" + gamma.name() + ',' + vf.name() + ')');
+
+    return tLaplacian;
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

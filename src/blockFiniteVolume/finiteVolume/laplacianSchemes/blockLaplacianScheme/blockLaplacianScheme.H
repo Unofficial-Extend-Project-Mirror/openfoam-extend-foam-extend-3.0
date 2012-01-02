@@ -181,6 +181,23 @@ public:
             const GeometricField<GType, fvPatchField, volMesh>&,
             GeometricField<Type, fvPatchField, volMesh>&
         );
+
+        virtual tmp<GeometricField<Type, fvPatchField, volMesh> > fvcLaplacian
+        (
+            const GeometricField<Type, fvPatchField, volMesh>&
+        ) = 0;
+
+        virtual tmp<GeometricField<Type, fvPatchField, volMesh> > fvcLaplacian
+        (
+            const GeometricField<GType, fvsPatchField, surfaceMesh>&,
+            const GeometricField<Type, fvPatchField, volMesh>&
+        ) = 0;
+
+        virtual tmp<GeometricField<Type, fvPatchField, volMesh> > fvcLaplacian
+        (
+            const GeometricField<GType, fvPatchField, volMesh>&,
+            const GeometricField<Type, fvPatchField, volMesh>&
+        );
 };
 
 

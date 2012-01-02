@@ -124,6 +124,17 @@ public:
             const GeometricField<GType, fvsPatchField, surfaceMesh>&,
             GeometricField<Type, fvPatchField, volMesh>&
         );
+
+        tmp<GeometricField<Type, fvPatchField, volMesh> > fvcLaplacian
+        (
+            const GeometricField<Type, fvPatchField, volMesh>&
+        );
+
+        tmp<GeometricField<Type, fvPatchField, volMesh> > fvcLaplacian
+        (
+            const GeometricField<GType, fvsPatchField, surfaceMesh>&,
+            const GeometricField<Type, fvPatchField, volMesh>&
+        );
 };
 
 
@@ -138,8 +149,15 @@ gaussBlockLaplacianScheme<Type, scalar>::fvmLaplacian                       \
 (                                                                           \
     const GeometricField<scalar, fvsPatchField, surfaceMesh>&,              \
     GeometricField<Type, fvPatchField, volMesh>&                            \
+);                                                                          \
+                                                                            \
+template<>                                                                  \
+tmp<GeometricField<Type, fvPatchField, volMesh> >                           \
+gaussBlockLaplacianScheme<Type, scalar>::fvcLaplacian                       \
+(                                                                           \
+const GeometricField<scalar, fvsPatchField, surfaceMesh>& gamma,            \
+    const GeometricField<Type, fvPatchField, volMesh>& vf                   \
 );
-
 
 defineBlockFvmLaplacianScalarGamma(scalar);
 defineBlockFvmLaplacianScalarGamma(vector);
