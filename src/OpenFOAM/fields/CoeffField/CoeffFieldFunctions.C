@@ -148,30 +148,8 @@ void Foam::opFunc                                                             \
     const CoeffField<Type>& f1                                                \
 )                                                                             \
 {                                                                             \
-    typedef CoeffField<Type> TypeCoeffField;                                  \
-                                                                              \
-    typedef typename TypeCoeffField::scalarTypeField scalarTypeField;         \
-    typedef typename TypeCoeffField::linearTypeField linearTypeField;         \
-    typedef typename TypeCoeffField::squareTypeField squareTypeField;         \
-                                                                              \
-    if (f.activeType() == blockCoeffBase::SCALAR)                             \
-    {                                                                         \
-        scalarTypeField sf = f1.asScalar();                                   \
-        sf.opFunc();                                                          \
-        f = sf;                                                               \
-    }                                                                         \
-    else if (f.activeType() == blockCoeffBase::LINEAR)                        \
-    {                                                                         \
-        linearTypeField sf = f1.asLinear();                                   \
-        sf.opFunc();                                                          \
-        f = sf;                                                               \
-    }                                                                         \
-    else if (f.activeType() == blockCoeffBase::SQUARE)                        \
-    {                                                                         \
-        squareTypeField sf = f1.asSquare();                                   \
-        sf.opFunc();                                                          \
-        f = sf;                                                               \
-    }                                                                         \
+    f = f1;                                                                   \
+    f.opFunc();                                                               \
 }                                                                             \
                                                                               \
 template<class Type>                                                          \
@@ -180,8 +158,8 @@ Foam::tmp<Foam::CoeffField<Type> > Foam::operator op                          \
     const CoeffField<Type>& f1                                                \
 )                                                                             \
 {                                                                             \
-    tmp<CoeffField<Type> > tf(new CoeffField<Type>(f1.size()));               \
-    opFunc(tf(), f1);                                                         \
+    tmp<CoeffField<Type> > tf(new CoeffField<Type>(f1));                      \
+    tf->opFunc();                                                             \
     return tf;                                                                \
 }                                                                             \
                                                                               \
@@ -192,7 +170,7 @@ Foam::tmp<Foam::CoeffField<Type> > Foam::operator op                          \
 )                                                                             \
 {                                                                             \
     tmp<CoeffField<Type> > tf(tf1.ptr());                                     \
-    opFunc(tf(), tf());                                                       \
+    tf->opFunc();                                                             \
     return tf;                                                                \
 }
 

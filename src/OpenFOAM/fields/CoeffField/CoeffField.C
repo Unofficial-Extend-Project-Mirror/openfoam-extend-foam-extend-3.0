@@ -1403,13 +1403,13 @@ void Foam::CoeffField<Type>::operator op(const scalarTypeField& f)            \
     }                                                                         \
     else if (al == blockCoeffBase::LINEAR)                                    \
     {                                                                         \
-        this->toLinear() op f*pTraits<linearType>::one;                       \
+        this->asLinear() op f*pTraits<linearType>::one;                       \
     }                                                                         \
     else if (al == blockCoeffBase::SQUARE)                                    \
     {                                                                         \
         squareTypeField stf(f.size());                                        \
         expandScalar(stf, f);                                                 \
-        this->toSquare() op stf;                                              \
+        this->asSquare() op stf;                                              \
     }                                                                         \
 }                                                                             \
                                                                               \
@@ -1441,7 +1441,7 @@ void Foam::CoeffField<Type>::operator op(const linearTypeField& f)            \
     {                                                                         \
         squareTypeField stf(f.size());                                        \
         expandLinear(stf, f);                                                 \
-        this->toSquare() op stf;                                              \
+        this->asSquare() op stf;                                              \
     }                                                                         \
 }                                                                             \
                                                                               \
