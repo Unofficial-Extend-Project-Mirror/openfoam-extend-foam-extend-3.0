@@ -39,4 +39,8 @@ finiteVolume/fields/surfaceFields/surfaceVectorNFields.C
 
 finiteVolume/interpolation/VectorNSurfaceInterpolationSchemes.C
 
+finiteVolume/finiteVolume/snGradSchemes/VectorNSnGradSchemes.C
+
+finiteVolume/blockFvMatrices/blockFvVectorNMatrices.C
+
 LIB = $(FOAM_LIBBIN)/libVectorN
