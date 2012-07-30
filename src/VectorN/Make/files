@@ -32,6 +32,7 @@ finiteVolume/fields/fvsPatchFields/emptyFvsPatchVectorNFields.C
 finiteVolume/fields/fvsPatchFields/wedgeFvsPatchVectorNFields.C
 finiteVolume/fields/fvsPatchFields/coupledFvsPatchVectorNFields.C
 finiteVolume/fields/fvsPatchFields/processorFvsPatchVectorNFields.C
+finiteVolume/fields/fvsPatchFields/cyclicFvsPatchVectorNFields.C
 
 finiteVolume/fields/volFields/volVectorNFields.C
 finiteVolume/fields/surfaceFields/surfaceVectorNFields.C
