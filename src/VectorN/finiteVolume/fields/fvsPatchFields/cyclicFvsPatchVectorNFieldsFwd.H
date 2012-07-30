@@ -22,29 +22,41 @@ License
     along with OpenFOAM; if not, write to the Free Software Foundation,
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
+Class
+    cyclicFvsPatchField
+
+Description
+
 \*---------------------------------------------------------------------------*/
 
-#include "processorFvsPatchVectorNFields.H"
-#include "fvsPatchFields.H"
-#include "addToRunTimeSelectionTable.H"
+#ifndef cyclicFvsPatchVectorNFieldsFwd_H
+#define cyclicFvsPatchVectorNFieldsFwd_H
+
+#include "VectorNFieldTypes.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
 {
 
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#define doMakeFvsPatchTypeField(type, Type, args...)                          \
-    makeFvsPatchTypeField(fvsPatch##Type##Field, processorFvsPatch##Type##Field);
+template<class Type> class cyclicFvsPatchField;
 
-#define MacroArgs doMakeFvsPatchTypeField
+#define doMakeTypedef(type, Type, args...)                                  \
+    typedef cyclicFvsPatchField<type > cyclicFvsPatch##Type##Field;
+
+#define MacroArgs doMakeTypedef
 #include "allForAllNTypes.H"
 
-#undef doMakeFvsPatchTypeField
+#undef doMakeTypedef
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 } // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
 
 // ************************************************************************* //

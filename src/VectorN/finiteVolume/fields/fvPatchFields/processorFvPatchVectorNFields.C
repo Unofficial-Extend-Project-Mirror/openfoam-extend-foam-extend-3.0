@@ -34,71 +34,85 @@ namespace Foam
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-#define VectorNMatrixInterfaceFunc(Type)                                        \
-template <>                                                                     \
-void processorFvPatchField<Type>::initInterfaceMatrixUpdate                     \
-(                                                                               \
-    const Field<Type>& psiInternal,                                             \
-    Field<Type>&,                                                               \
-    const BlockLduMatrix<Type>&,                                                \
-    const CoeffField<Type>&,                                                    \
-    const Pstream::commsTypes commsType                                         \
-) const                                                                         \
-{                                                                               \
-    procPatch_.compressedSend                                                   \
-    (                                                                           \
-        commsType,                                                              \
-        this->patch().patchInternalField(psiInternal)()                         \
-    );                                                                          \
-}                                                                               \
-                                                                                \
-template <>                                                                     \
-void processorFvPatchField<Type>::updateInterfaceMatrix                         \
-(                                                                               \
-    const Field<Type>& psiInternal,                                             \
-    Field<Type>& result,                                                        \
-    const BlockLduMatrix<Type>&,                                                \
-    const CoeffField<Type>& coeffs,                                             \
-    const Pstream::commsTypes commsType                                         \
-) const                                                                         \
-{                                                                               \
-    Field<Type> pnf(this->size());                                              \
-                                                                                \
-    if (coeffs.activeType() == blockCoeffBase::SCALAR)                          \
-    {                                                                           \
-        pnf = coeffs.asScalar() *                                               \
-            procPatch_.compressedReceive<Type>(commsType, this->size())();      \
-    }                                                                           \
-    else if (coeffs.activeType() == blockCoeffBase::LINEAR)                     \
-    {                                                                           \
-        pnf = cmptMultiply(coeffs.asLinear(),                                   \
-            procPatch_.compressedReceive<Type>(commsType, this->size())()       \
-        );                                                                      \
-    }                                                                           \
-    else if (coeffs.activeType() == blockCoeffBase::SQUARE)                     \
-    {                                                                           \
-        pnf = coeffs.asSquare() &                                               \
-            procPatch_.compressedReceive<Type>(commsType, this->size())();      \
-    }                                                                           \
-                                                                                \
-    const unallocLabelList& faceCells = this->patch().faceCells();              \
-                                                                                \
-    forAll(faceCells, facei)                                                    \
-    {                                                                           \
-        result[faceCells[facei]] -= pnf[facei];                                 \
-    }                                                                           \
+#define VectorNMatrixInterfaceFunc(Type)                                      \
+template <>                                                                   \
+void processorFvPatchField<Type>::initInterfaceMatrixUpdate                   \
+(                                                                             \
+    const Field<Type>& psiInternal,                                           \
+    Field<Type>&,                                                             \
+    const BlockLduMatrix<Type>&,                                              \
+    const CoeffField<Type>&,                                                  \
+    const Pstream::commsTypes commsType                                       \
+) const                                                                       \
+{                                                                             \
+    procPatch_.compressedSend                                                 \
+    (                                                                         \
+        commsType,                                                            \
+        this->patch().patchInternalField(psiInternal)()                       \
+    );                                                                        \
+}                                                                             \
+                                                                              \
+template <>                                                                   \
+void processorFvPatchField<Type>::updateInterfaceMatrix                       \
+(                                                                             \
+    const Field<Type>& psiInternal,                                           \
+    Field<Type>& result,                                                      \
+    const BlockLduMatrix<Type>&,                                              \
+    const CoeffField<Type>& coeffs,                                           \
+    const Pstream::commsTypes commsType                                       \
+) const                                                                       \
+{                                                                             \
+    Field<Type> pnf(this->size());                                            \
+                                                                              \
+    if (coeffs.activeType() == blockCoeffBase::SCALAR)                        \
+    {                                                                         \
+        pnf = coeffs.asScalar() *                                             \
+            procPatch_.compressedReceive<Type>(commsType, this->size())();    \
+    }                                                                         \
+    else if (coeffs.activeType() == blockCoeffBase::LINEAR)                   \
+    {                                                                         \
+        pnf = cmptMultiply(coeffs.asLinear(),                                 \
+            procPatch_.compressedReceive<Type>(commsType, this->size())()     \
+        );                                                                    \
+    }                                                                         \
+    else if (coeffs.activeType() == blockCoeffBase::SQUARE)                   \
+    {                                                                         \
+        pnf = coeffs.asSquare() &                                             \
+            procPatch_.compressedReceive<Type>(commsType, this->size())();    \
+    }                                                                         \
+                                                                              \
+    const unallocLabelList& faceCells = this->patch().faceCells();            \
+                                                                              \
+    forAll(faceCells, facei)                                                  \
+    {                                                                         \
+        result[faceCells[facei]] -= pnf[facei];                               \
+    }                                                                         \
 }
 
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-#define doMakePatchTypeField(type, Type, args...)                               \
-    VectorNMatrixInterfaceFunc(type)                                            \
-                                                                                \
-    makePatchTypeField(fvPatch##Type##Field, processorFvPatch##Type##Field);
+// Define interface functions for VectorN types
 
-#define MacroArgs doMakePatchTypeField
+#define doMakeVectorNInterfaceFunc(type, Type, args...)                       \
+    VectorNMatrixInterfaceFunc(type)
+    
+#define MacroArgs doMakeVectorNInterfaceFunc
 #include "forAllVectorNTypes.H"
 
+#undef doMakeVectorNInterfaceFunc
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Instantiate VectorN, TensorN, etc. patchFields
+
+#define doMakePatchTypeField(type, Type, args...)                             \
+    makePatchTypeField(fvPatch##Type##Field, processorFvPatch##Type##Field);
+    
+#define MacroArgs doMakePatchTypeField
+#include "allForAllNTypes.H"
 #undef doMakePatchTypeField
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #undef VectorNMatrixInterfaceFunc
 

@@ -47,7 +47,7 @@ template<class Type> class processorFvsPatchField;
     typedef processorFvsPatchField<type > processorFvsPatch##Type##Field;
 
 #define MacroArgs doMakeTypedef
-#include "forAllVectorNTypes.H"
+#include "allForAllNTypes.H"
 
 #undef doMakeTypedef
 

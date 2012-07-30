@@ -24,27 +24,15 @@ License
 
 \*---------------------------------------------------------------------------*/
 
-#include "processorFvsPatchVectorNFields.H"
-#include "fvsPatchFields.H"
-#include "addToRunTimeSelectionTable.H"
+#ifndef cyclicFvsPatchVectorNFields_H
+#define cyclicFvsPatchVectorNFields_H
+
+#include "cyclicFvsPatchVectorNFieldsFwd.H"
+#include "cyclicFvsPatchField.H"
+#include "fvsPatchVectorNFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-namespace Foam
-{
-
-// * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
-
-#define doMakeFvsPatchTypeField(type, Type, args...)                          \
-    makeFvsPatchTypeField(fvsPatch##Type##Field, processorFvsPatch##Type##Field);
-
-#define MacroArgs doMakeFvsPatchTypeField
-#include "allForAllNTypes.H"
-
-#undef doMakeFvsPatchTypeField
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-} // End namespace Foam
+#endif
 
 // ************************************************************************* //
