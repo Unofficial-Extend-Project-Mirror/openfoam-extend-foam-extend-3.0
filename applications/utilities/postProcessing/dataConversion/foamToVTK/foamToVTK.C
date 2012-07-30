@@ -136,6 +136,8 @@ Note
 #include "writePatchGeom.H"
 #include "writeSurfFields.H"
 
+#include "volVectorNFields.H"
+#include "surfaceVectorNFields.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -500,13 +502,23 @@ int main(int argc, char *argv[])
         readFields(vMesh, vMesh, objects, selectedFields, vtf);
         print("    volTensorFields            :", Info, vtf);
 
-        const label nVolFields =
+        label nVolFields =
                 vsf.size()
               + vvf.size()
               + vSpheretf.size()
               + vSymmtf.size()
               + vtf.size();
 
+#       define doRead(type, Type, args...)                                          \
+            PtrList<vol##Type##Field> vol##Type##Fields;                            \
+            readFields(vMesh, vMesh, objects, selectedFields, vol##Type##Fields);   \
+            print("    vol" #Type "Fields            :", Pout, vol##Type##Fields);   \
+            nVolFields += vol##Type##Fields.size();
+
+#           define MacroArgs doRead
+#           include "allForAllNTypes.H"
+
+#       undef doRead
 
         // Construct pointMesh only if nessecary since constructs edge
         // addressing (expensive on polyhedral meshes)
@@ -620,6 +632,14 @@ int main(int argc, char *argv[])
             writer.write(vSpheretf);
             writer.write(vSymmtf);
             writer.write(vtf);
+
+#           define doWrite(type, Type, args...)         \
+                writer.write(vol##Type##Fields);
+
+#           define MacroArgs doWrite
+#           include "allForAllNTypes.H"
+
+#           undef doWrite
 
             if (!noPointValues)
             {

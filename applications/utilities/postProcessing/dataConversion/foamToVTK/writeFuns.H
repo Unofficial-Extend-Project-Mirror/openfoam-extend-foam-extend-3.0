@@ -43,6 +43,8 @@ SourceFiles
 #include "vtkMesh.H"
 #include "volPointInterpolation.H"
 
+#include "volVectorNFields.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -104,6 +106,19 @@ public:
         static void insert(const symmTensor&, DynamicList<floatScalar>&);
         static void insert(const tensor&, DynamicList<floatScalar>&);
 
+#       define defineInsertFun(type, Type, args...)                                     \
+        static void insert(const type& pt, DynamicList<floatScalar>& dest)              \
+        {                                                                               \
+            for (direction cmpt = 0; cmpt < type::nComponents; cmpt++)                  \
+            {                                                                           \
+                dest.append(float(pt[cmpt]));                                           \
+            }                                                                           \
+        }
+
+#       define MacroArgs defineInsertFun
+#       include "allForAllNTypes.H"
+
+#       undef defineInsertFun
 
     //- Append elements to DynamicList
     static void insert(const labelList&, DynamicList<label>&);

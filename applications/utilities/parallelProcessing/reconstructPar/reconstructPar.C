@@ -47,6 +47,9 @@ Description
 #include "processorFaMeshes.H"
 #include "faFieldReconstructor.H"
 
+#include "volVectorNFields.H"
+#include "surfaceVectorNFields.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
@@ -186,6 +189,16 @@ int main(int argc, char *argv[])
          || objects.lookupClass(surfaceSphericalTensorField::typeName).size()
          || objects.lookupClass(surfaceSymmTensorField::typeName).size()
          || objects.lookupClass(surfaceTensorField::typeName).size()
+
+#           define includeOrTerm(type, Type, args...)                           \
+             || objects.lookupClass(vol##Type##Field::typeName).size()       \
+             || objects.lookupClass(surface##Type##Field::typeName).size()
+
+#           define MacroArgs includeOrTerm
+#           include "forAllVectorNTypes.H"
+
+#           undef includeOrTerm
+
         )
         {
             Info << "Reconstructing FV fields" << nl << endl;
@@ -250,6 +263,23 @@ int main(int argc, char *argv[])
                 objects,
                 selectedFields
             );
+
+#           define doReconstruct(type, Types, args...)                      \
+                fvReconstructor.reconstructFvVolumeFields<type>             \
+                (                                                           \
+                    objects,                                                \
+                    selectedFields                                          \
+                );                                                          \
+                fvReconstructor.reconstructFvSurfaceFields<type>            \
+                (                                                           \
+                    objects,                                                \
+                    selectedFields                                          \
+                );
+
+#           define MacroArgs doReconstruct
+#           include "forAllVectorNTypes.H"
+
+#           undef doReconstruct
         }
         else
         {

@@ -92,6 +92,9 @@ Usage
 #include "faMeshDecomposition.H"
 #include "faFieldDecomposer.H"
 
+#include "volVectorNFields.H"
+#include "surfaceVectorNFields.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
@@ -328,6 +331,14 @@ int main(int argc, char *argv[])
     PtrList<volTensorField> volTensorFields;
     readFields(mesh, objects, volTensorFields);
 
+#   define doRead(type, Type, args...)                       \
+        PtrList<vol##Type##Field> vol##Type##Fields;          \
+        readFields(mesh, objects, vol##Type##Fields);
+
+#   define MacroArgs doRead
+#   include "allForAllNTypes.H"
+
+#   undef doRead
 
     // Construct the surface fields
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -342,6 +353,14 @@ int main(int argc, char *argv[])
     PtrList<surfaceTensorField> surfaceTensorFields;
     readFields(mesh, objects, surfaceTensorFields);
 
+#   define doRead(type, Type, args...)                       \
+        PtrList<surface##Type##Field> surface##Type##Fields;  \
+        readFields(mesh, objects, surface##Type##Fields);
+
+#   define MacroArgs doRead
+#   include "allForAllNTypes.H"
+
+#   undef doRead
 
     // Construct the point fields
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -670,6 +689,14 @@ int main(int argc, char *argv[])
          || surfaceSphericalTensorFields.size()
          || surfaceSymmTensorFields.size()
          || surfaceTensorFields.size()
+#           define includeOrTerms(type, Type, args...)         \
+             || vol##Type##Fields.size()                     \
+             || surface##Type##Fields.size()
+
+#           define MacroArgs includeOrTerms
+#           include "allForAllNTypes.H"
+
+#           undef includeOrTerms
         )
         {
             labelIOList faceProcAddressing
@@ -705,6 +732,15 @@ int main(int argc, char *argv[])
             fieldDecomposer.decomposeFields(surfaceSphericalTensorFields);
             fieldDecomposer.decomposeFields(surfaceSymmTensorFields);
             fieldDecomposer.decomposeFields(surfaceTensorFields);
+
+#           define doDecompose(type, Type, args...)                    \
+                fieldDecomposer.decomposeFields(vol##Type##Fields);     \
+                fieldDecomposer.decomposeFields(vol##Type##Fields);
+
+#           define MacroArgs doDecompose
+#           include "allForAllNTypes.H"
+
+#           undef doDecompose
         }
 
 

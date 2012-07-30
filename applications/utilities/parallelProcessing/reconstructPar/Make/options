@@ -1,8 +1,10 @@
 EXE_INC = \
+    -ftemplate-depth-200 \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
     -I$(LIB_SRC)/finiteArea/lnInclude \
     -I$(LIB_SRC)/lagrangian/basic/lnInclude \
     -I$(LIB_SRC)/tetDecompositionFiniteElement/lnInclude \
+    -I$(LIB_SRC)/VectorN/lnInclude \
     $(WM_DECOMP_INC)
 
 EXE_LIBS = \
@@ -10,4 +12,5 @@ EXE_LIBS = \
     -lfiniteArea \
     -llagrangian \
     -lmeshTools \
+    -lVectorN \
     $(WM_DECOMP_LIBS)
