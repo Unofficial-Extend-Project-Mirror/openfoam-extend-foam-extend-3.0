@@ -66,7 +66,7 @@ dimensionSet contractScalar(const dimensionSet& ds);
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #define UNARY_FUNCTION(returnType, type, fun, text)                                 \
-inline dimensioned< returnType > fun(const dimensioned< type >& t);
+dimensioned< returnType > fun(const dimensioned< type >& t);
 
 
 #define BINARY_OPERATOR(returnType, type1, type2, op, text)                         \
@@ -85,7 +85,7 @@ UNARY_FUNCTION(diagTensorType, tensorType, diag, diag)                          
 UNARY_FUNCTION(diagTensorType, diagTensorType, diag, diag)                          \
 UNARY_FUNCTION(sphericalTensorType, sphericalTensorType, diag, diag)                \
                                                                                     \
-UNARY_FUNCTION(vectorType, vectorType, cmptSum, cmptSum)                            \
+UNARY_FUNCTION(cmptType, vectorType, cmptSum, cmptSum)                              \
                                                                                     \
 BINARY_OPERATOR(tensorType, tensorType, diagTensorType, operator+, +)               \
 BINARY_OPERATOR(tensorType, diagTensorType, tensorType, operator+, +)               \

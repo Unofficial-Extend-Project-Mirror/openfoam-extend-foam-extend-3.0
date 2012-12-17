@@ -37,7 +37,7 @@ namespace Foam
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 #define UNARY_FUNCTION(returnType, type, fun, text)                 \
-inline dimensioned< returnType > fun(const dimensioned< type >& t)  \
+dimensioned< returnType > fun(const dimensioned< type >& t)  \
 {                                                                   \
     return dimensioned< returnType >                                \
     (                                                               \
@@ -48,7 +48,7 @@ inline dimensioned< returnType > fun(const dimensioned< type >& t)  \
 }
 
 
-#define BINARY_OPERATOR(returnType, type1, type2, op, text)            \
+#define BINARY_OPERATOR(returnType, type1, type2, op, text)         \
 dimensioned< returnType > op(const dimensioned< type1 >& dt1,       \
     const dimensioned< type2 >& dt2)                                \
 {                                                                   \
@@ -69,6 +69,8 @@ UNARY_FUNCTION(sphericalTensorType, sphericalTensorType, inv, inv)              
 UNARY_FUNCTION(diagTensorType, tensorType, diag, diag)                              \
 UNARY_FUNCTION(diagTensorType, diagTensorType, diag, diag)                          \
 UNARY_FUNCTION(sphericalTensorType, sphericalTensorType, diag, diag)                \
+                                                                                    \
+UNARY_FUNCTION(cmptType, vectorType, cmptSum, cmptSum)                              \
                                                                                     \
 BINARY_OPERATOR(tensorType, tensorType, diagTensorType, operator+, +)               \
 BINARY_OPERATOR(tensorType, diagTensorType, tensorType, operator+, +)               \
