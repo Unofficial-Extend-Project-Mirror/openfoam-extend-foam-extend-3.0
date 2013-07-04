@@ -1,0 +1,6 @@
+Compiling libccmio
+=========================================
+In order to build libccmio, please obtain
+libccmio-2.6.1.tar.gz and copy it to rpmBuild/SOURCES/.
+Edit Allwmake.stage3 and uncomment lines 78-84; then re-run 
+Allwmake.stage3.
