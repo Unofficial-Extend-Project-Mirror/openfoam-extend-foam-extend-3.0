@@ -46,37 +46,19 @@ export WM_PROJECT_VERSION=1.6-ext
 
 if [ -z "$WM_PROJECT_VERSION_ADDITION" ]
 then
-    # Return the canonical or full pathname of a file or
-    # directory. This is a replacement for readlink which
-    # is not portable. Will preserve symlinks.
-    function _canonicalPath
-    {
-	local path="$1" ; shift
-	if [ -d "$path" ]
-	then
-            echo "$(cd "$path" ; pwd -L)"
-	else
-            local b=$(basename "$path")
-            local p=$(dirname "$path")
-            echo "$(cd "$p" ; pwd -L)/$b"
-	fi
-    }
-
-    canonicalFullScriptPath=$(_canonicalPath "$BASH_SOURCE")
-    dirName="$(basename $(dirname $(dirname $canonicalFullScriptPath)))"
-    suffix="$(echo $dirName | sed -e "s/OpenFOAM-$WM_PROJECT_VERSION//")"
-    if [ -n $suffix ]
+    thisScript="${BASH_SOURCE[0]}"
+    if [ ! -n "$thisScript" ]
     then
-	# Keep the suffix as is. Will preserve the '-' or '_' characters 
-	# that could be present at the beginning of the suffix.
-	export WM_PROJECT_VERSION_ADDITION=$suffix
+	# this is vor bash version < 4 and zsh
+	thisScript=$0
     fi
-    unset dirName suffix canonicalFullScriptPath
+    export WM_PROJECT_VERSION_ADDITION=`python -c "from os.path import *;print abspath(join(curdir,'$thisScript')).split(sep)[-3][len('OpenFOAM-$WM_PROJECT_VERSION')+1:]"`
+    unset thisScript
 fi
 
 if [ -n "$WM_PROJECT_VERSION_ADDITION" ]
 then
-    export WM_PROJECT_VERSION=$WM_PROJECT_VERSION$WM_PROJECT_VERSION_ADDITION
+    export WM_PROJECT_VERSION=$WM_PROJECT_VERSION-$WM_PROJECT_VERSION_ADDITION
 fi
 
 # helps to easily write #ifdefs to detect a dev-version

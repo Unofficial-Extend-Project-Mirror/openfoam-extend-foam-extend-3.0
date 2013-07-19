@@ -31,56 +31,41 @@
 #
 #------------------------------------------------------------------------------
 
-# Return the canonical or full pathname of a file or
-# directory. This is a replacement for readlink which
-# is not portable. Will preserve symlinks
-alias _canonicalPath '            \\
-    set pathHere=\!*;             \\
-    set b=`basename $pathHere`;   \\
-    set p=`dirname $pathHere`;    \\
-    eval "                        \\
-    if (-d \!*) then              \\
-        (cd $pathHere; pwd -L)    \\
-    else                          \\
-        echo `(cd $p; pwd -L)`/$b \\
-    endif"'
-
-# make sure that this variable is set on purpose
+# make sure that this variable is set un purpose
 unset WM_PROJECT_VERSION_ADDITION
 unsetenv WM_PROJECT_VERSION_ADDITION
 
 set called=($_)
-set prefSettingFile=$called[2].preset
+if ( $#called != 1 ) then
+    # tcsh - csh doesn't know about the location
+    set thisScript=$called[2]
+    set prefSettingFile=$thisScript.preset
 
-if ( -r $prefSettingFile ) then
-    #    echo "Found presettings $prefSettingFile"
-    source $prefSettingFile
+    if ( -r $prefSettingFile ) then
+	#    echo "Found presettings $prefSettingFile"
+	source $prefSettingFile
+    endif
+else
+    echo "csh - WM_PROJECT_VERSION_ADDITION not supported"
 endif
 
 setenv WM_PROJECT OpenFOAM
 setenv WM_PROJECT_VERSION 1.6-ext
 
-if( ! $?WM_PROJECT_VERSION_ADDITION ) then
-    set canonicalFullScriptPath=`_canonicalPath $called[2]`
-
-    if ( "$canonicalFullScriptPath" != "" ) then
-	set pathHere=`dirname $canonicalFullScriptPath`
-	set pathHere=`dirname $pathHere`
-	set dirName=`basename $pathHere`
-	set suffix=`echo $dirName | sed -e "s/OpenFOAM-$WM_PROJECT_VERSION//"`
-	if ( "$suffix" != "" ) then
-            # Keep the suffix as is. Will preserve the '-' or '_' characters 
-	    # that could be present at the beginning of the suffix.
-            setenv WM_PROJECT_VERSION_ADDITION $suffix
+if ( $#called != 1 ) then
+    if( ! $?WM_PROJECT_VERSION_ADDITION ) then
+	setenv WM_PROJECT_VERSION_ADDITION `python -c "from os.path import *;print abspath(join(curdir,'$thisScript')).split(sep)[-3][len('OpenFOAM-$WM_PROJECT_VERSION')+1:]"`
+	if ( "$WM_PROJECT_VERSION_ADDITION" == "" ) then
+	    unsetenv WM_PROJECT_VERSION_ADDITION
 	endif
-	unset dirName pathHere suffix
     endif
-    unset canonicalFullScriptPath
+    unset prefSettingFile thisScript
 endif
-unset prefSettingFile called
+
+unset called
 
 if ( $?WM_PROJECT_VERSION_ADDITION ) then
-    setenv WM_PROJECT_VERSION $WM_PROJECT_VERSION$WM_PROJECT_VERSION_ADDITION
+    setenv WM_PROJECT_VERSION $WM_PROJECT_VERSION-$WM_PROJECT_VERSION_ADDITION
 endif
 
 # helps to easily write #ifdefs to detect a dev-version
@@ -127,8 +112,9 @@ alias _foamSource 'if ($?FOAM_VERBOSE && $?prompt) echo "Sourcing: \!*"; source 
 
 # Add in preset user or site preferences:
 set foamPrefs=`$WM_PROJECT_DIR/bin/foamEtcFile prefs.csh`
+
 if ( $status == 0 ) then
-    if ( $#foamPrefs != 0) then
+    if ( "$foamPrefs" != "" ) then
         _foamSource $foamPrefs
     endif
 endif
@@ -312,10 +298,6 @@ case Darwin:
     case Gcc45:
         setenv WM_CC 'gcc-mp-4.5'
         setenv WM_CXX 'g++-mp-4.5'
-        breaksw;
-    case Gcc: # Use default Apple compiler if not using Mac-Ports
-        setenv WM_CC 'gcc'
-        setenv WM_CXX 'g++'
         breaksw;
     endsw
         #setenv WM_COMPILER ""
