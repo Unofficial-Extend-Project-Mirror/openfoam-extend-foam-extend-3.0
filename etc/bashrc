@@ -281,6 +281,10 @@ Darwin)
             export WM_CC='gcc-mp-4.5'
             export WM_CXX='g++-mp-4.5'
             ;;
+        Gcc)  # Use default Apple compiler if not using Mac-Ports
+            export WM_CC='gcc'
+            export WM_CXX='g++'
+            ;;
         *)
             export WM_COMPILER=
             ;;
