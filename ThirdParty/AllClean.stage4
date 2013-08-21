@@ -54,6 +54,7 @@ uninstallPackage qt-everywhere-opensource-src-4.7.4
 
 # ParaView
 uninstallPackage ParaView-3.12.0
+uninstallPackage ParaView-3.14.1
 
 echo
 echo ========================================
