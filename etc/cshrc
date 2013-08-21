@@ -264,6 +264,10 @@ case Darwin:
         setenv WM_CC 'gcc-mp-4.5'
         setenv WM_CXX 'g++-mp-4.5'
         breaksw;
+    case Gcc: # Use default Apple compiler if not using Mac-Ports
+        setenv WM_CC 'gcc'
+        setenv WM_CXX 'g++'
+        breaksw;
     endsw
         #setenv WM_COMPILER ""
     endif
