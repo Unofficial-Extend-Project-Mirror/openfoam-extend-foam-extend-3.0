@@ -97,11 +97,11 @@ case OpenFOAM:
         _foamAddLib $WM_THIRD_PARTY_DIR/gmp-4.2.4/platforms/$WM_ARCH$WM_COMPILER_ARCH/lib
     breaksw
     case Gcc46:
-        setenv WM_COMPILER_DIR $WM_THIRD_PARTY_DIR/packages/gcc-4.6.3/platforms/$WM_OPTIONS
-        _foamSource  $WM_THIRD_PARTY_DIR/packages/gmp-5.0.5/platforms/$WM_OPTIONS/etc/gmp-5.0.5.csh
-        _foamSource  $WM_THIRD_PARTY_DIR/packages/mpfr-3.1.0/platforms/$WM_OPTIONS/etc/mpfr-3.1.0.csh
-        _foamSource  $WM_THIRD_PARTY_DIR/packages/mpc-0.9/platforms/$WM_OPTIONS/etc/mpc-0.9.csh
-        _foamSource  $WM_THIRD_PARTY_DIR/packages/gcc-4.6.3/platforms/$WM_OPTIONS/etc/gcc-4.6.3.csh
+        setenv WM_COMPILER_DIR $WM_THIRD_PARTY_DIR/packages/gcc-4.6.4/platforms/$WM_OPTIONS
+        _foamSource  $WM_THIRD_PARTY_DIR/packages/gmp-5.1.2/platforms/$WM_OPTIONS/etc/gmp-5.1.2.csh
+        _foamSource  $WM_THIRD_PARTY_DIR/packages/mpfr-3.1.2/platforms/$WM_OPTIONS/etc/mpfr-3.1.2.csh
+        _foamSource  $WM_THIRD_PARTY_DIR/packages/mpc-1.0.1/platforms/$WM_OPTIONS/etc/mpc-1.0.1.csh
+        _foamSource  $WM_THIRD_PARTY_DIR/packages/gcc-4.6.4/platforms/$WM_OPTIONS/etc/gcc-4.6.4.csh
     breaksw
     case Gcc45:
         setenv WM_COMPILER_DIR $WM_THIRD_PARTY_DIR/packages/gcc-4.5.1/platforms/$WM_OPTIONS

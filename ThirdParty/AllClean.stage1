@@ -52,19 +52,23 @@ echo
 # gmp
 uninstallPackage gmp-5.0.1
 uninstallPackage gmp-5.0.5
+uninstallPackage gmp-5.1.2
 
 # mpfr
 uninstallPackage mpfr-3.0.1
 uninstallPackage mpfr-3.1.0
+uninstallPackage mpfr-3.1.2
 
 # gcc
 uninstallPackage gcc-4.4.5
 uninstallPackage gcc-4.5.1
 uninstallPackage gcc-4.6.3
+uninstallPackage gcc-4.7.3
 
 # mpc
 uninstallPackage mpc-0.8.2
 uninstallPackage mpc-0.9
+uninstallPackage mpc-1.0.1
 
 #Python
 uninstallPackage Python-2.7

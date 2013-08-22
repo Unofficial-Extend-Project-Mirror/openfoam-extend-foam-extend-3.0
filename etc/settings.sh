@@ -136,11 +136,11 @@ OpenFOAM)
         _foamAddLib $WM_THIRD_PARTY_DIR/gmp-4.2.4/platforms/$WM_ARCH$WM_COMPILER_ARCH/lib
         ;;
     Gcc46)
-        export WM_COMPILER_DIR=$WM_THIRD_PARTY_DIR/packages/gcc-4.6.3/platforms/$WM_OPTIONS
-        _foamSource  $WM_THIRD_PARTY_DIR/packages/gmp-5.0.5/platforms/$WM_OPTIONS/etc/gmp-5.0.5.sh
-        _foamSource  $WM_THIRD_PARTY_DIR/packages/mpfr-3.1.0/platforms/$WM_OPTIONS/etc/mpfr-3.1.0.sh
-        _foamSource  $WM_THIRD_PARTY_DIR/packages/mpc-0.9/platforms/$WM_OPTIONS/etc/mpc-0.9.sh
-        _foamSource  $WM_THIRD_PARTY_DIR/packages/gcc-4.6.3/platforms/$WM_OPTIONS/etc/gcc-4.6.3.sh
+        export WM_COMPILER_DIR=$WM_THIRD_PARTY_DIR/packages/gcc-4.6.4/platforms/$WM_OPTIONS
+        _foamSource  $WM_THIRD_PARTY_DIR/packages/gmp-5.1.2/platforms/$WM_OPTIONS/etc/gmp-5.1.2.sh
+        _foamSource  $WM_THIRD_PARTY_DIR/packages/mpfr-3.1.2/platforms/$WM_OPTIONS/etc/mpfr-3.1.2.sh
+        _foamSource  $WM_THIRD_PARTY_DIR/packages/mpc-1.0.1/platforms/$WM_OPTIONS/etc/mpc-1.0.1.sh
+        _foamSource  $WM_THIRD_PARTY_DIR/packages/gcc-4.6.4/platforms/$WM_OPTIONS/etc/gcc-4.6.4.sh
     ;;
     Gcc45)
         export WM_COMPILER_DIR=$WM_THIRD_PARTY_DIR/packages/gcc-4.5.1/platforms/$WM_OPTIONS

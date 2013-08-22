@@ -23,7 +23,7 @@
 #     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 #
 # Script
-#     RPM spec file for gcc-4.6.4
+#     RPM spec file for mpc-1.0.1
 #
 # Description
 #     RPM spec file for creating a relocatable RPM
@@ -61,19 +61,19 @@
 #
 %define _prefix         %{_WM_THIRD_PARTY_DIR}
 
-%define name		gcc
+%define name		mpc
 %define release		%{_WM_OPTIONS}
-%define version 	4.6.4
+%define version 	1.0.1
 
 %define buildroot       %{_topdir}/BUILD/%{name}-%{version}-root
 
 BuildRoot:	        %{buildroot}
-Summary: 		gcc
+Summary: 		mpc
 License: 		Unkown
 Name: 			%{name}
 Version: 		%{version}
 Release: 		%{release}
-URL:                    ftp://ftp.gnu.org/gnu/gcc/gcc-4.6.4
+URL:                    http://www.multiprecision.org/mpc/download/
 Source: 		%url/%{name}-%{version}.tar.gz
 Prefix: 		%{_prefix}
 Group: 			Development/Tools
@@ -97,17 +97,9 @@ Group: 			Development/Tools
 
     GMP_VERSION=gmp-5.1.2
     MPFR_VERSION=mpfr-3.1.2
-    MPC_VERSION=mpc-1.0.1
 
-    mkdir ./objBuildDir
-    cd ./objBuildDir
-
-    ../configure     \
+    ./configure     \
         --prefix=%{_installPrefix}  \
-        --enable-languages=c,c++  \
-        --enable-shared           \
-        --disable-multilib        \
-	--with-mpc=$WM_THIRD_PARTY_DIR/packages/$MPC_VERSION/platforms/$WM_OPTIONS \
 	--with-gmp=$WM_THIRD_PARTY_DIR/packages/$GMP_VERSION/platforms/$WM_OPTIONS \
 	--with-mpfr=$WM_THIRD_PARTY_DIR/packages/$MPFR_VERSION/platforms/$WM_OPTIONS
 
@@ -115,7 +107,6 @@ Group: 			Development/Tools
     make -j $WM_NCOMPPROCS
 
 %install
-    cd ./objBuildDir
     make install DESTDIR=$RPM_BUILD_ROOT
 
     # Creation of OpenFOAM specific .csh and .sh files"
@@ -131,14 +122,12 @@ cat << DOT_SH_EOF > $RPM_BUILD_ROOT/%{_installPrefix}/etc/%{name}-%{version}.sh
 # Load %{name}-%{version} libraries and binaries if available
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-export GCC_DIR=\$WM_THIRD_PARTY_DIR/packages/%{name}-%{version}/platforms/\$WM_OPTIONS
+export MPC_DIR=\$WM_THIRD_PARTY_DIR/packages/%{name}-%{version}/platforms/\$WM_OPTIONS
 
-[ -d \$GCC_DIR/lib ] && _foamAddLib \$GCC_DIR/lib
-
-[ -d \$GCC_DIR/lib64 ] && _foamAddLib \$GCC_DIR/lib64
+[ -d \$MPC_DIR/lib ] && _foamAddLib \$MPC_DIR/lib
 
 # Enable access to the package applications if present
-[ -d \$GCC_DIR/bin ] && _foamAddPath \$GCC_DIR/bin
+[ -d \$MPC_DIR/bin ] && _foamAddPath \$MPC_DIR/bin
 DOT_SH_EOF
 
     #
@@ -147,18 +136,14 @@ DOT_SH_EOF
 cat << DOT_CSH_EOF > $RPM_BUILD_ROOT/%{_installPrefix}/etc/%{name}-%{version}.csh
 # Load %{name}-%{version} libraries and binaries if available
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-setenv GCC_DIR \$WM_THIRD_PARTY_DIR/packages/%{name}-%{version}/platforms/\$WM_OPTIONS
+setenv MPC_DIR \$WM_THIRD_PARTY_DIR/packages/%{name}-%{version}/platforms/\$WM_OPTIONS
 
-if ( -e \$GCC_DIR/lib ) then
-    _foamAddLib \$GCC_DIR/lib
+if ( -e \$MPC_DIR/lib ) then
+    _foamAddLib \$MPC_DIR/lib
 endif
 
-if ( -e \$GCC_DIR/lib64 ) then
-    _foamAddLib \$GCC_DIR/lib64
-endif
-
-if ( -e \$GCC_DIR/bin ) then
-    _foamAddPath \$GCC_DIR/bin
+if ( -e \$MPC_DIR/bin ) then
+    _foamAddPath \$MPC_DIR/bin
 endif
 DOT_CSH_EOF
 
@@ -172,4 +157,8 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root)
-%{_installPrefix}
+%{_installPrefix}/etc
+%{_installPrefix}/include
+%{_installPrefix}/lib
+%{_installPrefix}/share
+
