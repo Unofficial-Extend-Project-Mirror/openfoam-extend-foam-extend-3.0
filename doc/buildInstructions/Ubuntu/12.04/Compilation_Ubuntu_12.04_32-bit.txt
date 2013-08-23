@@ -33,11 +33,6 @@ sudo apt-get install git flex bison rpm g++ zlib1g-dev binutils-dev \
 
 --------------------------------------------------------------------------------
 
-# Minor correction for make/gmake
-sudo ln -s /usr/bin/make /usr/bin/gmake
-
---------------------------------------------------------------------------------
-
 # Download OpenFOAM-1.6-ext
 mkdir ~/OpenFOAM
 cd ~/OpenFOAM

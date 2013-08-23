@@ -25,11 +25,6 @@ sudo apt-get install git-core flex bison rpm g++ zlib1g-dev binutils-dev \
 
 --------------------------------------------------------------------------------
 
-# Minor correction for make/gmake
-sudo ln -s /usr/bin/make /usr/bin/gmake
-
---------------------------------------------------------------------------------
-
 # Installation of libstdc++.so.5:
 
 For Ubuntu 32bit:
