@@ -37,7 +37,7 @@ Change MixingPlane boundary condition parameters
                                action="store",
                                dest="zone",
                                default=None,
-                               help='Name of the zone for mixingPlanePatch')                                     
+                               help='Name of the zone for mixingPlanePatch')
         self.parser.add_option("--coordinateSystemName",
                                action="store",
                                dest="coordinateSystemName",
@@ -52,17 +52,23 @@ Change MixingPlane boundary condition parameters
                                action="store",
                                dest="coordinateSystemOrigin",
                                default=None,
-                               help='origin for coordinate system of mixingPlane')
+                               nargs=3,
+                               type=float,
+                               help='origin for coordinate system of mixingPlane. Specify a triplet of values separated by spaces')
         self.parser.add_option("--coordinateSystemE1",
                                action="store",
                                dest="coordinateSystemE1",
                                default=None,
-                               help='axis E1 for coordinate system of mixingPlane')
+                               nargs=3,
+                               type=float,
+                               help='axis E1 for coordinate system of mixingPlane. Specify a triplet of values separated by spaces')
         self.parser.add_option("--coordinateSystemE3",
                                action="store",
                                dest="coordinateSystemE3",
                                default=None,
-                               help='axis E3 for coordinate system of mixingPlane')
+                               nargs=3,
+                               type=float,
+                               help='axis E3 for coordinate system of mixingPlane. Specify a triplet of values separated by spaces')
         self.parser.add_option("--ribbonPatchSweepAxis",
                                action="store",
                                dest="ribbonPatchSweepAxis",
@@ -78,7 +84,7 @@ Change MixingPlane boundary condition parameters
                                dest="ribbonPatchDiscretisation",
                                default=None,
                                help='ribbonPatch discretisation (masterPatch|slavePatch|bothPatches|uniform|userDefined)')
-        
+
         self.parser.add_option("--test",
                                action="store_true",
                                default=False,
@@ -88,7 +94,7 @@ Change MixingPlane boundary condition parameters
     def run(self):
         fName=self.parser.getArgs()[0]
         bName=self.parser.getArgs()[1]
- 
+
         boundary=ParsedParameterFile(path.join(".",fName,"constant","polyMesh","boundary"),debug=False,boundaryDict=True)
 
         bnd=boundary.content
@@ -120,13 +126,13 @@ Change MixingPlane boundary condition parameters
                         val["coordinateSystem"]["type"]=self.parser.getOptions().coordinateSystemType
 
                     if self.parser.getOptions().coordinateSystemOrigin!=None:
-                        val["coordinateSystem"]["origin"]=self.parser.getOptions().coordinateSystemOrigin
+                        val["coordinateSystem"]["origin"]="(%f %f %f)" % self.parser.getOptions().coordinateSystemOrigin
 
                     if self.parser.getOptions().coordinateSystemE1!=None:
-                        val["coordinateSystem"]["e1"]=self.parser.getOptions().coordinateSystemE1
+                        val["coordinateSystem"]["e1"]="(%f %f %f)" % self.parser.getOptions().coordinateSystemE1
 
                     if self.parser.getOptions().coordinateSystemE3!=None:
-                        val["coordinateSystem"]["e3"]=self.parser.getOptions().coordinateSystemE3
+                        val["coordinateSystem"]["e3"]="(%f %f %f)" % self.parser.getOptions().coordinateSystemE3
 
                     if val.has_key("ribbonPatch")==False:
                         val["ribbonPatch"]={}
