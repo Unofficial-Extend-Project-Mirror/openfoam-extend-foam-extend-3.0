@@ -1,3 +1,0 @@
-faceSet mixpLeftOutZone new patchToFace mixpLeftOut
-faceSet mixpRightInZone new patchToFace mixpRightIn
-quit
