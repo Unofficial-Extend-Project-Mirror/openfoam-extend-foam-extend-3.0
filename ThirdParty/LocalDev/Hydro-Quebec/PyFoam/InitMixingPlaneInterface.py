@@ -6,16 +6,24 @@ constant/polymesh/boundary file, and in the time directories.
 
 Backups of the modified files are created
 
+Generate companion scripts for initializing the mixingPlane zone faceSets.
+
+Modify the decomposeParDict file for the new mixingPlane zones names.
+
 Author:
-  Martin Beaudoin, Hydro-Quebec, 2012.  All rights reserved
+  Martin Beaudoin, Hydro-Quebec, 2013.  All rights reserved
 
 """
+
+import sys, fnmatch, re
+from os import path, listdir, chmod
+from stat import *
 
 from PyFoamApplication import PyFoamApplication
 from PyFoam.RunDictionary.ParsedParameterFile import ParsedParameterFile
 from PyFoam.RunDictionary.TimeDirectory import TimeDirectory
-from os import path, listdir
-import sys, fnmatch, re
+from PyFoam.Basics.BasicFile import BasicFile
+
 
 class InitMixingPlaneInterface(PyFoamApplication):
     def __init__(self,args=None):
@@ -31,12 +39,6 @@ Init MixingPlane boundary condition parameters
                                    nr=3)
 
     def addOptions(self):
-        # No need for option --shadowPatch since the name of the shadowPatch is a mandatory parameter to the script
-        #self.parser.add_option("--shadowPatch",
-        #                       action="store",
-        #                       dest="shadowPatch",
-        #                       default=None,
-        #                       help='Name of the shadowPatch')
         self.parser.add_option("--coordinateSystemName",
                                action="store",
                                dest="coordinateSystemName",
@@ -51,17 +53,23 @@ Init MixingPlane boundary condition parameters
                                action="store",
                                dest="coordinateSystemOrigin",
                                default=None,
-                               help='origin for coordinate system of mixingPlane')
+                               nargs=3,
+                               type=float,
+                               help='origin for coordinate system of mixingPlane. Specify a triplet of values separated by spaces')
         self.parser.add_option("--coordinateSystemE1",
                                action="store",
                                dest="coordinateSystemE1",
                                default=None,
-                               help='axis E1 for coordinate system of mixingPlane')
+                               nargs=3,
+                               type=float,
+                               help='origin for coordinate system of mixingPlane. Specify a triplet of values separated by spaces')
         self.parser.add_option("--coordinateSystemE3",
                                action="store",
                                dest="coordinateSystemE3",
                                default=None,
-                               help='axis E3 for coordinate system of mixingPlane')
+                               nargs=3,
+                               type=float,
+                               help='origin for coordinate system of mixingPlane. Specify a triplet of values separated by spaces')
         self.parser.add_option("--ribbonPatchSweepAxis",
                                action="store",
                                dest="ribbonPatchSweepAxis",
@@ -84,6 +92,18 @@ Init MixingPlane boundary condition parameters
                                default=None,
                                help='time directories for the mixingPlane boundaryfields. Accept expressions like "[0-9]*", "0", etc.')
 
+        self.parser.add_option("--genFaceSetForMixingPlaneZonesScriptName",
+                               action="store",
+                               dest="genFaceSetForMixingPlaneZonesScriptName",
+                               default="genFaceSetForMixingPlaneZones.setSet",
+                               help='setSet batch file for generating faceSets for mixingPlane zones. Default: genFaceSetForMixingPlaneZones.setSet')
+
+        self.parser.add_option("--initMixingPlaneZonesScriptName",
+                               action="store",
+                               dest="initMixingPlaneZonesScriptName",
+                               default="initMixingPlaneZones.sh",
+                               help='script name for initializing the mixingPlane zone faceSets. Default: initMixingPlaneZones.sh')
+
         self.parser.add_option("--test",
                                action="store_true",
                                default=False,
@@ -101,6 +121,7 @@ the current definition
             'nFaces'      : patch["nFaces"],
             'startFace'   : patch["startFace"],
             'shadowPatch' : 'unknown',
+            'zone'        : patchName+'Zone',
             'coordinateSystem' : {
                 'name'   : 'mixingCS',
                 'type'   : 'cylindrical',
@@ -124,6 +145,8 @@ Modify the definition of a mixingPlane patch
 
         patch["shadowPatch"]=shadowName
 
+        patch["zone"]=patchName+'Zone'
+
         if patch.has_key("coordinateSystem")==False:
             patch["coordinateSystem"]={}
 
@@ -134,13 +157,13 @@ Modify the definition of a mixingPlane patch
             patch["coordinateSystem"]["type"]=self.parser.getOptions().coordinateSystemType
 
         if self.parser.getOptions().coordinateSystemOrigin!=None:
-            patch["coordinateSystem"]["origin"]=self.parser.getOptions().coordinateSystemOrigin
+            patch["coordinateSystem"]["origin"]="(%f %f %f)" % self.parser.getOptions().coordinateSystemOrigin
 
         if self.parser.getOptions().coordinateSystemE1!=None:
-            patch["coordinateSystem"]["e1"]=self.parser.getOptions().coordinateSystemE1
+            patch["coordinateSystem"]["e1"]="(%f %f %f)" % self.parser.getOptions().coordinateSystemE1
 
         if self.parser.getOptions().coordinateSystemE3!=None:
-            patch["coordinateSystem"]["e3"]=self.parser.getOptions().coordinateSystemE3
+            patch["coordinateSystem"]["e3"]="(%f %f %f)" % self.parser.getOptions().coordinateSystemE3
 
         if patch.has_key("ribbonPatch")==False:
             patch["ribbonPatch"]={}
@@ -167,20 +190,74 @@ Modify the definition of a mixingPlane patch in the time directories
         for timeDir in listdir(caseDir):
             if reobj.match(timeDir):
                 print "    Modifying mixingPlane boundaryFields in timeDir", timeDir, "for patch", patchName
-
                 td=TimeDirectory(caseDir, timeDir, yieldParsedFiles=True)
 
                 for f in td:
                     print "        Modifying field", f.name
                     f["boundaryField"][patchName]["type"]='mixingPlane'
+                    #
+                    # With the current version, the mixingType is configured
+                    # using system/fvSchemes
+                    #f["boundaryField"][patchName]["fluxAveraging"]='false'
                     f.writeFile()
 
+    def generateCompanionFiles(self, caseDir, boundary):
+        description="""\
+Generate a setSet batch file based on the zone info specified in the mixingPlane interfaces definition.
+Generate a bash file for invoking setSet and setsToZones
+Update mixingPlane zone information in decomposeParDict
+        """
+        # Default file: genFaceSetForMixingPlaneZones.setSet
+        bfGenFaceSets = BasicFile(path.join(caseDir, self.parser.getOptions().genFaceSetForMixingPlaneZonesScriptName))
+
+        print "    Updating file ", bfGenFaceSets.name, " for generating mixingPlane zones faceSet using the setSet command"
+
+        bnd=boundary.content
+
+        if type(bnd)!=list:
+            self.error("Problem with boundary file (not a list)")
+
+        # Memorize list of mixingPlane zones for later processing
+        listOfMixingPlaneZones = []
+
+        for index in range(0, len(bnd), 2):
+            patchName = bnd[index]
+            indexDefPatch=index+1
+            if bnd[indexDefPatch]["type"]=='mixingPlane':
+                bfGenFaceSets.writeLine([ "faceSet " + bnd[indexDefPatch]["zone"] + " new patchToFace "+ patchName ])
+                listOfMixingPlaneZones.append(bnd[indexDefPatch]["zone"])
+
+        bfGenFaceSets.writeLine([ "quit" ])
+        bfGenFaceSets.close()
+
+        # Default file: initMixingPlaneZones.sh
+        bfInitMixingPlaneZones = BasicFile(path.join(caseDir, self.parser.getOptions().initMixingPlaneZonesScriptName))
+
+        print "    Updating file ", bfInitMixingPlaneZones.name, " for inititalizing mixingPlane zones"
+
+        bfInitMixingPlaneZones.writeLine([ "#!/bin/bash" ])
+        bfInitMixingPlaneZones.writeLine([ "setSet -batch " + self.parser.getOptions().genFaceSetForMixingPlaneZonesScriptName ])
+        bfInitMixingPlaneZones.writeLine([ "setsToZones -noFlipMap" ])
+        bfInitMixingPlaneZones.close()
+
+        # Set execution permissions for this script (755)
+        chmod(bfInitMixingPlaneZones.name, S_IRWXU|S_IRGRP|S_IXGRP|S_IXOTH|S_IROTH)
+
+        # DecomposeParDict
+        decomposeParDictPath=path.join(caseDir,"system","decomposeParDict")
+        if path.exists(decomposeParDictPath):
+            print "    Updating file ", decomposeParDictPath, " for mixingPlane zones"
+            decomposeParDict=ParsedParameterFile(decomposeParDictPath,debug=False,backup=True)
+            dcp=decomposeParDict.content
+            dcp["globalFaceZones"]="(\n    " + '\n    '.join(list(listOfMixingPlaneZones)) + "\n)"
+            decomposeParDict.writeFile()
+
     def run(self):
-        fName=self.parser.getArgs()[0]
+        caseDir=self.parser.getArgs()[0]
         masterbName=self.parser.getArgs()[1]
         shadowbName=self.parser.getArgs()[2]
- 
-        boundary=ParsedParameterFile(path.join(".",fName,"constant","polyMesh","boundary"),debug=False,boundaryDict=True,backup=True)
+
+        boundary=ParsedParameterFile(path.join(".",caseDir,"constant","polyMesh","boundary"),debug=False,boundaryDict=True,backup=True)
 
         bnd=boundary.content
 
@@ -211,7 +288,7 @@ Modify the definition of a mixingPlane patch in the time directories
                 self.modifyMixinPlanePatchDefinition(bnd[indexDefPatch], masterbName, shadowbName)
 
                 if updateTimeDirs:
-                    self.modifyMixinPlanePatchDefinitionInTimeDirs(fName, masterbName, timeDirs)
+                    self.modifyMixinPlanePatchDefinitionInTimeDirs(caseDir, masterbName, timeDirs)
 
             elif bnd[index]==shadowbName:
                 shadowFound=True
@@ -221,7 +298,7 @@ Modify the definition of a mixingPlane patch in the time directories
                 self.modifyMixinPlanePatchDefinition(bnd[indexDefPatch], shadowbName, masterbName)
 
                 if updateTimeDirs:
-                    self.modifyMixinPlanePatchDefinitionInTimeDirs(fName, shadowbName, timeDirs)
+                    self.modifyMixinPlanePatchDefinitionInTimeDirs(caseDir, shadowbName, timeDirs)
 
             if masterFound and shadowFound:
                 break;
@@ -237,5 +314,7 @@ Modify the definition of a mixingPlane patch in the time directories
         else:
             boundary.writeFile()
 
+        # Write companion files
+        self.generateCompanionFiles(caseDir, boundary)
 
 
