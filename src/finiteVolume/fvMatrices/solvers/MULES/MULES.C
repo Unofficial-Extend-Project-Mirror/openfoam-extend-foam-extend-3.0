@@ -37,6 +37,8 @@ License
 
 #include "fvCFD.H"
 
+#include "profilingTrigger.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 void Foam::MULES::explicitSolve
@@ -48,6 +50,7 @@ void Foam::MULES::explicitSolve
     const scalar psiMin
 )
 {
+    profilingTrigger trigger("MULES::explicitSolve");
     explicitSolve
     (
         geometricOneField(),
@@ -69,6 +72,7 @@ void Foam::MULES::implicitSolve
     const scalar psiMin
 )
 {
+    profilingTrigger trigger("MULES::implicitSolve");
     implicitSolve
     (
         geometricOneField(),

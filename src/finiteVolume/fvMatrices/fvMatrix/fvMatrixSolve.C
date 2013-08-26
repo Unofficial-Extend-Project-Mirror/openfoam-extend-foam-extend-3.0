@@ -24,6 +24,8 @@ License
 
 \*---------------------------------------------------------------------------*/
 
+#include "profiling.H"
+
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 template<class Type>
@@ -56,6 +58,8 @@ Foam::lduMatrix::solverPerformance Foam::fvMatrix<Type>::solve
     const dictionary& solverControls
 )
 {
+    profilingTrigger profSolve("fvMatrix::solve_"+psi_.name());
+
     if (debug)
     {
         Info<< "fvMatrix<Type>::solve(const dictionary&) : "
