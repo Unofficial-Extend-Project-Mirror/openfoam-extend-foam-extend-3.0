@@ -25,9 +25,15 @@ cleanVTK ()
   rm -rf VTK > /dev/null 2>&1
 }
 
+cleanLog ()
+{
+  rm -rf log* > /dev/null 2>&1
+}
+
 # Cleaning up the case
 cleanCase
 cleanBoundary
 cleanTimeZero
 cleanPyFoam
 cleanVTK
+cleanLog
