@@ -67,9 +67,9 @@ FoamFile
     startFace 314750;
     shadowPatch sideWallA_BB_cyclic2;
     zone sideWallA_BB_cyclic1Zone;
-    bridgeOverlap off;
-    rotationAxis (0 0 1);
-    rotationAngle 60;
+    bridgeOverlap false;
+    rotationAxis (0.000000 0.000000 1.000000);
+    rotationAngle 60.0;
     separationOffset (0 0 0);
 
   }
@@ -81,9 +81,9 @@ FoamFile
     startFace 315000;
     shadowPatch sideWallA_BB_cyclic1;
     zone sideWallA_BB_cyclic2Zone;
-    bridgeOverlap off;
-    rotationAxis (0 0 1);
-    rotationAngle -60;
+    bridgeOverlap false;
+    rotationAxis (0.000000 0.000000 1.000000);
+    rotationAngle -60.0;
     separationOffset (0 0 0);
 
   }
@@ -94,15 +94,21 @@ FoamFile
     nFaces 500;
     startFace 315250;
     shadowPatch B_DOWNSTREAM;
+    zone B_UPSTREAMZone;
     coordinateSystem
     {
+      name mixingCS;
       type cylindrical;
       origin (0 0 0);
-      axis (0 0 1);
-      direction (1 0 0);
+      e1 (1 0 0);
+      e3 (0 0 1);
     }
-    orientation dirR_spanTheta;
-    assembly both;
+    ribbonPatch
+    {
+      sweepAxis Theta;
+      stackAxis R;
+      discretisation bothPatches;
+    }
 
   }
   B_DOWNSTREAM
@@ -112,14 +118,32 @@ FoamFile
     nFaces 2000;
     startFace 315750;
     shadowPatch B_UPSTREAM;
+    zone B_DOWNSTREAMZone;
     coordinateSystem
     {
+      name mixingCS;
       type cylindrical;
       origin (0 0 0);
-      axis (0 0 1);
-      direction (1 0 0);
+      e1 (1 0 0);
+      e3 (0 0 1);
     }
-    orientation dirR_spanTheta;
-    assembly both;
+    ribbonPatch
+    {
+      sweepAxis Theta;
+      stackAxis R;
+      discretisation bothPatches;
+    }
+
+  }
+  defaultFaces
+
+  {
+    type empty;
+    nFaces 0;
+    startFace 317750;
+
   }
 )
+
+
+// ************************************************************************* //
