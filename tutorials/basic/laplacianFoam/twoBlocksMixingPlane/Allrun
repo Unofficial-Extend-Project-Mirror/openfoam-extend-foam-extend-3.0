@@ -17,7 +17,7 @@ runApplicationAndReportOnError blockMesh
 
 echo "$caseName: Updating the boundary file using  pyFoamInitMixingPlaneInterface.py"
 # If not using pyFoamInitMixingPlaneInterface.py, a copy of a preconfigured
-# is avaliable in constant/polyMesh/boundary.preconfigured
+# boundary file is avaliable in constant/polyMesh/boundary.preconfigured
 
 runApplicationAndReportOnError pyFoamInitMixingPlaneInterface.py . \
     mixpLeftOut mixpRightIn                           \
