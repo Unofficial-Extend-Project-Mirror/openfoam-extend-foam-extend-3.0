@@ -27,7 +27,7 @@ from PyFoam.Basics.BasicFile import BasicFile
 class InitGgiInterface(PyFoamApplication):
     def __init__(self,args=None):
         description="""
-Init GGI boundary condition parameters in boundary file. 
+Init GGI boundary condition parameters in boundary file.
 Init GGI boundary fields in time directories.
 Generate faceSet scripts for ggi zones.
 Modify GGI zones information in decomposeParDict file.
@@ -60,7 +60,9 @@ Modify GGI zones information in decomposeParDict file.
                                action="store",
                                dest="rotationAxis",
                                default=None,
-                               help='rotation axis for cyclicGgi or overlapGgi')
+                               nargs=3,
+                               type=float,
+                               help='rotation axis for cyclicGgi or overlapGgi. Specify a triplet of values separated by spaces')
         self.parser.add_option("--rotationAngle",
                                action="store",
                                dest="rotationAngle",
@@ -70,7 +72,9 @@ Modify GGI zones information in decomposeParDict file.
                                action="store",
                                dest="separationOffset",
                                default=None,
-                               help='separation offset for cyclicGgi')
+                               nargs=3,
+                               type=float,
+                               help='separation offset for cyclicGgi. Specify a triplet of values separated by spaces')
         self.parser.add_option("--nCopies",
                                action="store",
                                dest="nCopies",
@@ -139,7 +143,7 @@ Modify the definition of a ggi patch
 
         if ggiType=="cyclicGgi":
             if self.parser.getOptions().rotationAxis!=None:
-                patch["rotationAxis"]=self.parser.getOptions().rotationAxis
+                patch["rotationAxis"]="(%f %f %f)" % self.parser.getOptions().rotationAxis
 
             # Use the rotationAngle value passed as a parameter.
             # The calling function will change the sign for the slave ggi patch
@@ -147,7 +151,7 @@ Modify the definition of a ggi patch
                 patch["rotationAngle"]=rotationAngle
 
             if self.parser.getOptions().separationOffset!=None:
-                patch["separationOffset"]=self.parser.getOptions().separationOffset
+                patch["separationOffset"]="(%f %f %f)" % self.parser.getOptions().separationOffset
 
         if ggiType=="overlapGgi":
             if self.parser.getOptions().rotationAxis!=None:
@@ -183,7 +187,7 @@ Generate a setSet batch file based on the zone info specified in the ggi interfa
 Generate a bash file for invoking setSet and setsToZones
 Update GGI zone infoprmation in decomposeParDict
         """
-        # Default file: genFaceSetForGgiZones.setSet 
+        # Default file: genFaceSetForGgiZones.setSet
         bfGenFaceSets = BasicFile(path.join(caseDir, self.parser.getOptions().genFaceSetForGgiZonesScriptName))
 
         print "    Updating file ", bfGenFaceSets.name, " for generating GGI zones faceSet using the setSet command"
@@ -210,7 +214,7 @@ Update GGI zone infoprmation in decomposeParDict
         bfInitGgiZones = BasicFile(path.join(caseDir, self.parser.getOptions().initGgiZonesScriptName))
 
         print "    Updating file ", bfInitGgiZones.name, " for inititalizing GGI zones"
-        
+
         bfInitGgiZones.writeLine([ "#!/bin/bash" ])
         bfInitGgiZones.writeLine([ "setSet -batch " + self.parser.getOptions().genFaceSetForGgiZonesScriptName ])
         bfInitGgiZones.writeLine([ "setsToZones -noFlipMap" ])
@@ -232,7 +236,7 @@ Update GGI zone infoprmation in decomposeParDict
         caseDir=self.parser.getArgs()[0]
         masterbName=self.parser.getArgs()[1]
         shadowbName=self.parser.getArgs()[2]
- 
+
         boundary=ParsedParameterFile(path.join(".",caseDir,"constant","polyMesh","boundary"),debug=False,boundaryDict=True,backup=True)
 
         bnd=boundary.content
@@ -249,7 +253,7 @@ Update GGI zone infoprmation in decomposeParDict
             timeDirs=self.parser.getOptions().timeDirs
             updateTimeDirs=True
 
-        ggiType=self.parser.getOptions().ggiType 
+        ggiType=self.parser.getOptions().ggiType
 
         rotationAngle=0.0
         if self.parser.getOptions().rotationAngle!=None:
