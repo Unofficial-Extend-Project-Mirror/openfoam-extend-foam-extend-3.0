@@ -249,7 +249,9 @@ Update mixingPlane zone information in decomposeParDict
             print "    Updating file ", decomposeParDictPath, " for mixingPlane zones"
             decomposeParDict=ParsedParameterFile(decomposeParDictPath,debug=False,backup=True)
             dcp=decomposeParDict.content
-            dcp["globalFaceZones"]="(\n    " + '\n    '.join(list(listOfMixingPlaneZones)) + "\n)"
+            # Adding to existing list of zones, making sure we have a list of unique values
+            uniqZoneValues=set(dcp["globalFaceZones"] + listOfMixingPlaneZones)
+            dcp["globalFaceZones"]="(\n    " + '\n    '.join(uniqZoneValues) + "\n)"
             decomposeParDict.writeFile()
 
     def run(self):

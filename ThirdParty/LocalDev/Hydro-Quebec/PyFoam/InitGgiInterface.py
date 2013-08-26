@@ -229,7 +229,9 @@ Update GGI zone infoprmation in decomposeParDict
             print "    Updating file ", decomposeParDictPath, " for GGI zones"
             decomposeParDict=ParsedParameterFile(decomposeParDictPath,debug=False,backup=True)
             dcp=decomposeParDict.content
-            dcp["globalFaceZones"]="(\n    " + '\n    '.join(list(listOfGgiZones)) + "\n)"
+            # Adding to existing list of zones, making sure we have a list of unique values
+            uniqZoneValues=set(dcp["globalFaceZones"] + listOfGgiZones)
+            dcp["globalFaceZones"]="(\n    " + '\n    '.join(uniqZoneValues) + "\n)"
             decomposeParDict.writeFile()
 
     def run(self):
