@@ -132,4 +132,36 @@ makeFsiResultsLinks ()
     cd ..
 }
 
+#
+# Additional functions useful for the test harness
+#
+
+# Set the number of lines we output from the log file when an error is detected
+# Can be overriden by the calling script
+: ${DUMP_NBR_LOG_LINES:=10}; export DUMP_NBR_LOG_LINES
+
+# Exception handler: dump the tail of the log file on error
+verbose_report_on_runApplication_error()
+{
+    if [ "$reportOnErrorOnlyOnce" ] ; then
+        echo "Error running $APP_RUN..."
+        if [ -f $LOG_NAME ] ; then
+            tail -n $DUMP_NBR_LOG_LINES $LOG_NAME
+        fi
+    fi
+
+    # Do not report again when exiting
+    unset reportOnErrorOnlyOnce
+}
+
+# Variation of runApplication with exception handling
+runApplicationAndReportOnError ()
+{
+    trap 'verbose_report_on_runApplication_error' ERR
+    reportOnErrorOnlyOnce=1
+
+    runApplication $*
+}
+
+
 #------------------------------------------------------------------------------
