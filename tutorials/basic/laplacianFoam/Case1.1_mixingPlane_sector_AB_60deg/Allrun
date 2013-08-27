@@ -4,9 +4,6 @@
 
 . $WM_PROJECT_DIR/bin/tools/RunFunctions
 
-# Load additional RunFunctions
-. ./RunFunctionsSupplemental
-
 export caseName=`basename $PWD`
 
 #We stop this script when we encounter a problem
