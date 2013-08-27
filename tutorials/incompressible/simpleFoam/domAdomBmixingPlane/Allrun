@@ -1,0 +1,111 @@
+#!/bin/bash
+
+. $WM_PROJECT_DIR/bin/tools/RunFunctions                                        
+
+if [ -d domAdomB2D_orig ] ; then
+     case_base=domAdomB2D;
+else
+    echo "sorry, you need to have domAdomB2D_orig in the current folder";
+fi
+
+case=${case_base}_mixingPlane
+
+application="simpleFoam"
+
+###-------------Saving the datas----------------###
+
+rm -r ${case}
+cp -r ${case_base}_orig ${case}
+
+cp mesh/blockMeshDict ${case}/constant/polyMesh
+
+###-------------Building the case----------------###
+cd ${case}
+
+### Mesh generation ###
+
+runApplication blockMesh
+
+### Definition of the boundary conditions in constant/polyMesh/boundary ###
+
+#- Change some boundary names
+pyFoamChangeBoundaryName.py . per1DomA   cyclic1DomA
+pyFoamChangeBoundaryName.py . per2DomA   cyclic2DomA
+pyFoamChangeBoundaryName.py . per1DomB   cyclic1DomB
+pyFoamChangeBoundaryName.py . per2DomB   cyclic2DomB
+
+#- Change boundary types for patchs
+pyFoamChangeBoundaryType.py . topAndBottom empty
+
+pyFoamChangeBoundaryType.py . inletDomA   patch
+pyFoamChangeBoundaryType.py . outletDomB  patch
+
+pyFoamChangeBoundaryType.py . bladeDomA  wall
+pyFoamChangeBoundaryType.py . bladeDomB  wall
+
+#- Define boundary types for coupled patchs
+pyFoamInitMixingPlaneInterface.py   . outletDomA inletDomB --ribbonPatchSweepAxis Theta --ribbonPatchStackAxis Z --ribbonPatchDiscretisation bothPatches
+
+pyFoamInitGgiInterface.py   . cyclic1DomA cyclic2DomA  --type cyclicGgi --rotationAxis 0 0 1 --rotationAngle -6 --bridgeOverlapFlag off 
+pyFoamInitGgiInterface.py   . cyclic1DomB cyclic2DomB  --type cyclicGgi --rotationAxis 0 0 1 --rotationAngle -6 --bridgeOverlapFlag off 
+
+pyFoamInitGgiInterface.py   . ggi1DomA ggi2DomA        --type ggi --bridgeOverlapFlag off 
+pyFoamInitGgiInterface.py   . ggi1DomB ggi2DomB        --type ggi --bridgeOverlapFlag off 
+
+### Set up GGI zones ###
+
+./initGgiZones.sh
+
+### Set up mixingPlane zones ###
+
+./initMixingPlaneZones.sh
+
+### Definition of the boundaryField for the fields in 0 ### 
+
+cd 0
+
+#- 0/U --------------------------------------------------------------------------------#
+pyFoamCreateBoundaryPatches.py --verbose --overwrite --fix-types --clear-unused U
+
+
+pyFoamCreateBoundaryPatches.py --verbose --overwrite --filter="bladeDomA" --default="{
+'type':  'fixedValue',
+'value':  'uniform (0 0 0)'}" U
+
+pyFoamCreateBoundaryPatches.py --verbose --overwrite --filter="bladeDomB" --default="{
+'type':  'fixedValue',
+'value':  'uniform (0 0 0)'}" U
+
+pyFoamCreateBoundaryPatches.py --verbose --overwrite --filter="inletDomA" --default="{
+'type':  'profile1DfixedValue',
+'fileName':  '\"profil_in.csv\"',
+'fileFormat':  '\"turboCSV\"',
+'interpolateCoord':  '\"Z\"',
+'fieldName':  '\"Velocity\"'}" U
+
+pyFoamCreateBoundaryPatches.py --verbose --overwrite --filter="outletDomB" --default="{
+'type':       'inletOutlet',
+'inletValue': 'uniform (0 0 0)',
+'value':      'uniform (0 0 0)'}" U
+
+#- 0/p --------------------------------------------------------------------------------#
+pyFoamCreateBoundaryPatches.py --verbose --overwrite --fix-types --clear-unused p
+
+pyFoamCreateBoundaryPatches.py --verbose --overwrite --filter="outletDomB" --default="{
+'type':  'fixedValue',
+'value':  'uniform 0'}" p
+
+cd ..
+
+### Mesh checking and statistics ###
+
+runApplication checkMesh
+
+###-------------Running the application----------------###
+
+runApplication $application
+
+###-------------Some postprocessing    ----------------###
+
+runApplication -l log.foamCalc_U    foamCalc componentsTurbo U
+runApplication -l log.foamCalc_Urel foamCalc componentsTurbo Urel

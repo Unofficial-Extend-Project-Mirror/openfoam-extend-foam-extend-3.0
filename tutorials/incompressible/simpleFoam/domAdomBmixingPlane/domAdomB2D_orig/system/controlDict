@@ -1,0 +1,225 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  1.3                                   |
+|   \\  /    A nd           | Web:      http://www.openfoam.org               |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+FoamFile
+{
+    version         2.0;
+    format          ascii;
+    class           dictionary;
+    object          controlDict;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//applicationClass icoTopoFoam;
+application simpleFoam;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         20000;
+
+deltaT          1;
+
+writeControl    timeStep;
+
+writeInterval   20000;
+
+cycleWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  12;
+
+writeCompression compressed;
+
+timeFormat      general;
+
+timePrecision   12;
+
+runTimeModifiable yes;
+
+adjustTimeStep yes;
+
+maxCo          0.2;
+
+maxDeltaT      1.0;
+
+functions
+(
+    trackDictionaryContent
+    {
+
+        type trackDictionary;
+
+        // Where to load it from (if not already in solver)
+        functionObjectLibs ("libsimpleFunctionObjects.so");
+
+        // Names of dictionaries to track.
+        dictionaryNameList
+        (
+            "system/controlDict"
+            "system/fvSchemes"
+            "system/fvSolution"
+            "constant/transportProperties"
+            "constant/RASProperties"
+        );
+
+        // Section separators (optional)
+        // If the string "_sectionIdToken_" explicitely appears in the
+        // specification of the following section separators, this token
+        // string will be replaced by the name of the dictionary beeing
+        // dumped to the console, plus the file modification date and time.
+        sectionStartSeparator "############ Start of: _sectionIdToken_ ############";
+        sectionEndSeparator   "############ End of: _sectionIdToken_ ############";
+//
+        echoControlDictDebugSwitches off;
+        echoControlDictInfoSwitches off;
+        echoControlDictTolerances off;
+        echoControlDictOptimisationSwitches off;
+        echoControlDictDimensionedConstants off;
+    }
+
+
+    ggiCheck
+    {
+        // Type of functionObject
+        type ggiCheck;
+
+        phi phi;
+
+        // Where to load it from (if not already in solver)
+        functionObjectLibs ("libcheckFunctionObjects.so");
+    }
+    
+    mixingPlaneCheck
+    {
+        // Type of functionObject
+        type mixingPlaneCheck;
+
+        phi phi;
+
+        // Where to load it from (if not already in solver)
+        functionObjectLibs ("libcheckFunctionObjects.so");
+    }
+
+    patchMassFlowInOut
+    {
+	// Type of the functionObject
+        type patchMassFlow;
+	// Name of library
+	functionObjectLibs ("libsimpleFunctionObjects.so");
+	//- Names of the patches to use (wordList)
+	patches (
+		 inletDomA
+		 outletDomA
+                 inletDomB
+                 outletDomB
+		);
+	//- Do output on the terminal (bool)
+	verbose true;
+	//- Factor to multiply results with (to account for symmetries etc)
+	factor 1;
+	//- Time after which calculation should start
+	after -1;
+	//- how many time-steps between outputs
+	outputInterval 1;
+    }
+    
+    patchMassFlowCyclicDomA
+    {
+	// Type of the functionObject
+        type patchMassFlow;
+	// Name of library
+	functionObjectLibs ("libsimpleFunctionObjects.so");
+	//- Names of the patches to use (wordList)
+	patches (
+		 cyclic1DomA
+		 cyclic2DomA
+		);
+	//- Do output on the terminal (bool)
+	verbose true;
+	//- Factor to multiply results with (to account for symmetries etc)
+	factor 1;
+	//- Time after which calculation should start
+	after -1;
+	//- how many time-steps between outputs
+	outputInterval 1;
+    }
+
+    patchMassFlowCyclicDomB
+    {
+	// Type of the functionObject
+        type patchMassFlow;
+	// Name of library
+	functionObjectLibs ("libsimpleFunctionObjects.so");
+	//- Names of the patches to use (wordList)
+	patches (
+                 cyclic1DomB
+                 cyclic2DomB
+		);
+	//- Do output on the terminal (bool)
+	verbose true;
+	//- Factor to multiply results with (to account for symmetries etc)
+	factor 1;
+	//- Time after which calculation should start
+	after -1;
+	//- how many time-steps between outputs
+	outputInterval 1;
+    }
+
+    patchMassFlowInternalGgiDomA
+    {
+	// Type of the functionObject
+        type patchMassFlow;
+	// Name of library
+	functionObjectLibs ("libsimpleFunctionObjects.so");
+	//- Names of the patches to use (wordList)
+	patches (
+		 ggi1DomA
+		 ggi2DomA
+		);
+	//- Do output on the terminal (bool)
+	verbose true;
+	//- Factor to multiply results with (to account for symmetries etc)
+	factor 1;
+	//- Time after which calculation should start
+	after -1;
+	//- how many time-steps between outputs
+	outputInterval 1;
+    }
+    
+    patchMassFlowInternalGgiDomB
+    {
+	// Type of the functionObject
+        type patchMassFlow;
+	// Name of library
+	functionObjectLibs ("libsimpleFunctionObjects.so");
+	//- Names of the patches to use (wordList)
+	patches (
+                 ggi1DomB
+                 ggi2DomB
+		);
+	//- Do output on the terminal (bool)
+	verbose true;
+	//- Factor to multiply results with (to account for symmetries etc)
+	factor 1;
+	//- Time after which calculation should start
+	after -1;
+	//- how many time-steps between outputs
+	outputInterval 1;
+    }
+    
+);
+
+
+libs ("libOpenFOAM.so" "libOpenFoamTurbo.so" ); 
+// ************************************************************************* //
