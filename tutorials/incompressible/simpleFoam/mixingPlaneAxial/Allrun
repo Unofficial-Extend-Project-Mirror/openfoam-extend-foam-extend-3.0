@@ -18,77 +18,43 @@ echo "$caseName: Creating the file blockMeshDict using m4"
 echo "$caseName: Running blockMesh"
 runApplicationAndReportOnError blockMesh
 
-echo "$caseName: Updating the boundary file"
-# Let's see if pyFoamChangeMixingPlaneBoundary.py is available
-command -v pyFoamChangeMixingPlaneBoundary.py >/dev/null
-if [ $? -eq 0 ];
-then
-    echo "Using pyFoamChangeMixingPlaneBoundary.py"
-    pyFoamChangeMixingPlaneBoundary.py . upstreamMixingPlanePatch   \
-    --shadowPatch                    downstreamMixingPlanePatch \
-    --zone                           upstreamMixingPlaneZone    \
-    --ribbonPatchDiscretisation      bothPatches                \
-    --ribbonPatchStackAxis           Z                          \
-    --ribbonPatchSweepAxis           Theta                      \
-    --coordinateSystemType           cylindrical                \
-    --coordinateSystemOrigin         "(0 0 0)"                  \
-    --coordinateSystemE1             "(1 0 0)"                  \
-    --coordinateSystemE3             "(0 0 1)"
+echo "$caseName: Updating the GGI and mixingPlane interfaces parameters"
 
-    pyFoamChangeMixingPlaneBoundary.py . downstreamMixingPlanePatch \
-    --shadowPatch                    upstreamMixingPlanePatch   \
-    --zone                           downstreamMixingPlaneZone  \
-    --ribbonPatchDiscretisation      bothPatches                \
-    --ribbonPatchStackAxis           Z                          \
-    --ribbonPatchSweepAxis           Theta                      \
-    --coordinateSystemType           cylindrical                \
-    --coordinateSystemOrigin         "(0 0 0)"                  \
-    --coordinateSystemE1             "(1 0 0)"                  \
-    --coordinateSystemE3             "(0 0 1)"
+# If not using pyFoamInitMixingPlaneInterface.py and pyFoamInitGgiInterface.py,
+# a copy of a preconfigured boundary file is avaliable in
+# constant/polyMesh/boundary.preconfigured
+
+echo "Using pyFoamInitMixingPlaneInterface.py"
+runApplicationAndReportOnError pyFoamInitMixingPlaneInterface.py . \
+    upstreamMixingPlanePatch   downstreamMixingPlanePatch          \
+    --coordinateSystemType           cylindrical \
+    --coordinateSystemOrigin         0 0 0       \
+    --coordinateSystemE1             1 0 0       \
+    --coordinateSystemE3             0 0 1       \
+    --ribbonPatchDiscretisation      bothPatches \
+    --ribbonPatchStackAxis           Z           \
+    --ribbonPatchSweepAxis           Theta
 
 
-    echo "Using pyFoamChangeGGIBoundary.py"
-    pyFoamChangeGGIBoundary.py . upstreamPerio1    \
-        --shadowPatch            upstreamPerio2    \
-        --rotationAxis           "(0 0 1)"         \
-        --rotationAngle          36                \
-        --zone                   upstreamPerio1Zone
+echo "Using pyFoamInitGgiInterface.py"
+runApplicationAndReportOnError -l log1.pyFoamInitGgiInterface.py \
+        pyFoamInitGgiInterface.py . upstreamPerio1 upstreamPerio2      \
+        --type                   cyclicGgi \
+        --rotationAxis           0 0 1     \
+        --rotationAngle          36
 
-    pyFoamChangeGGIBoundary.py . upstreamPerio2    \
-        --shadowPatch            upstreamPerio1    \
-        --rotationAxis           "(0 0 1)"         \
-        --rotationAngle          -36               \
-        --zone                   upstreamPerio2Zone
-
-    pyFoamChangeGGIBoundary.py . downstreamPerio1    \
-        --shadowPatch            downstreamPerio2    \
-        --rotationAxis           "(0 0 1)"           \
-        --rotationAngle          90                  \
-        --zone                   downstreamPerio1Zone
-
-    pyFoamChangeGGIBoundary.py . downstreamPerio2    \
-        --shadowPatch            downstreamPerio1    \
-        --rotationAxis           "(0 0 1)"           \
-        --rotationAngle          -90                 \
-        --zone                   downstreamPerio2Zone
-else
-    echo "pyFoamChangeMixingPlaneBoundary.py is missing. Using the file constant/polyMesh/boundary.preconfigured"
-    cp constant/polyMesh/boundary.preconfigured constant/polyMesh/boundary
-fi
-
+runApplicationAndReportOnError -l log2.pyFoamInitGgiInterface.py \
+        pyFoamInitGgiInterface.py . downstreamPerio1 downstreamPerio2 \
+        --type                   cyclicGgi \
+        --rotationAxis           0 0 1     \
+        --rotationAngle          90
 
 echo "$caseName: Creating the starting time directory"
 cp -r 0_orig 0
-echo "$caseName: Creating zones for the mixingPlane"
-runApplicationAndReportOnError setSet -batch setBatchMixingPlane
-runApplicationAndReportOnError setsToZones -noFlipMap
-mv log.setSet log.setSet_MixingPlane
-mv log.setsToZones log.setsToZones_MixingPlane
 
-runApplicationAndReportOnError setSet -batch setBatchGGIZone
-runApplicationAndReportOnError setsToZones -noFlipMap
-mv log.setSet log.setSet_GGIZone
-mv log.setsToZones log.setsToZones_GGIZone
+echo "$caseName: Initializing the mixingPlane and GGI zones"
+runApplicationAndReportOnError -l log.initMixingPlaneZones.sh ./initMixingPlaneZones.sh
+runApplicationAndReportOnError -l log.initGgiZones.sh ./initGgiZones.sh
 
 echo "$caseName: Running potentialFoam"
 runApplicationAndReportOnError potentialFoam

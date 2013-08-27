@@ -40,6 +40,12 @@ cleanVTK ()
   rm -rf VTK > /dev/null 2>&1
 }
 
+cleanLog ()
+{
+  rm -f log1.pyFoamInitGgiInterface.py
+  rm -f log2.pyFoamInitGgiInterface.py
+}
+
 # Cleaning up the case
 cleanSampling
 cleanPostProcessing
@@ -48,3 +54,4 @@ cleanFilesFromM4
 cleanTimeZero
 cleanPyFoam
 cleanVTK
+cleanLog
