@@ -81,3 +81,30 @@ the file CTestConfig.cmake.openfoam-extend.
 If submitted to the CDash server on openfoam-extend, your results will be displayed here:
 http://openfoam-extend.sourceforge.net/CDash/index.php?project=OpenFOAM-1.6-ext
 
+
+
+4: Running individual tests
+---------------------------
+
+Here are the instructions for running individual tests from the test harness
+
+1: cd $WM_PROJECT_DIR/testHarness/OpenFOAM®/1.6-ext/runDir
+
+2: Configure the test harness
+
+    ./Allrun_CMakeOnly
+
+3: List available tests, along with their individual test number:
+
+    ctest -N
+
+4: Running an individual test:
+
+    ctest -I xxx (where xxx is the number associated with the test you wish to run)
+
+
+You can also select a bunch of tests using regular expressions. See here for more information:
+
+    http://cmake.org/Wiki/CMake/Testing_With_CTest#Running_Individual_Tests
+
+When running individual tests like this, the result of the test will not be uploaded to the Dashboard service.
