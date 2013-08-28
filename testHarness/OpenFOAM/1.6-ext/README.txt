@@ -26,13 +26,13 @@
 #              README file for the CMake/CTest/CDash test harness for OpenFOAM.
 #
 # Author:
-#              Martin Beaudoin, Hydro-Quebec, 2010. All rights reserved.
+#              Martin Beaudoin, Hydro-Quebec, 2013. All rights reserved.
 # \*---------------------------------------------------------------------------*/
 
 Warning #1: Make sure your OpenFOAM environment is properly initialized before
             running the test harness.
 
-Warning #2: It is recommended to use cmake version 2.8.0 or newer for
+Warning #2: It is required to use cmake version 2.8.8 or newer for
             running the test harness.
 
 
@@ -44,18 +44,23 @@ a) You can set your local system identifier using the environment variable
    your machine's hostname. Otherwise, the fully qualified name of your system
    will be used.
 
+b) In order to run the test harness in parallel using many cores or processors,
+   make sure to initialize the environment variable WM_NCOMPPROCS to the number
+   of required processors.
+   If the environment variable WM_NCOMPPROCS is left uninitialized, the test
+   harness will run on a single processor.
 
-b) Install the CMakeLists.txt and CTestConfig.cmake files by executing the following commands:
+c) Install the CMakeLists.txt and CTestConfig.cmake files by executing the following commands:
 
-cp ./CMakeFiles/CMakeLists.txt $WM_PROJECT_DIR
-cp ./CMakeFiles/CTestConfig.cmake.openfoam-extend $WM_PROJECT_DIR/CTestConfig.cmake
+   cp ./CMakeFiles/CMakeLists.txt $WM_PROJECT_DIR
+   cp ./CMakeFiles/CTestConfig.cmake.openfoam-extend $WM_PROJECT_DIR/CTestConfig.cmake
 
 
-c) Run the test harness and push your results on the CDash server on openfoam-extend
+d) Run the test harness and push your results on the CDash server on openfoam-extend
 
-cd ./runDir; ./Allclean; ./Allrun_Experimental
-  or
-cd ./runDir; ./Allclean; ./Allrun_Nightly
+   cd ./runDir; ./Allclean; ./Allrun_Experimental
+     or
+   cd ./runDir; ./Allclean; ./Allrun_Nightly
 
 
 2: Instructions for restarting your setup from scratch:

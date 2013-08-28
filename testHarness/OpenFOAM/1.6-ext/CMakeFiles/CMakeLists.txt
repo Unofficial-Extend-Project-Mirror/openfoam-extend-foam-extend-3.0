@@ -35,7 +35,7 @@
 #
 # \*-------------------------------------------------------------------------*/
 
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 2.8.8)
 
 PROJECT(OpenFOAM_1.6-ext)
 
@@ -128,7 +128,7 @@ if(GIT_FOUND)
     if (GIT_BRANCH_NAME STREQUAL "")
        message("No git-branch. Mercurial?")
        EXEC_PROGRAM(hg
-     ARGS branch
+         ARGS branch
          OUTPUT_VARIABLE GIT_BRANCH_NAME
        )
        message("Git branch (mercurial): ${GIT_BRANCH_NAME}")
