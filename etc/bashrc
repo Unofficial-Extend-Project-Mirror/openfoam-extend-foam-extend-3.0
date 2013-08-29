@@ -32,6 +32,7 @@
 #
 #------------------------------------------------------------------------------
 
+unset WM_PROJECT_VERSION_ADDITION
 prefSettingFile=$0.preset
 if [ -f $prefSettingFile ]
 then
@@ -42,6 +43,41 @@ unset prefSettingFile
 
 export WM_PROJECT=OpenFOAM
 export WM_PROJECT_VERSION=1.6-ext
+
+if [ -z "$WM_PROJECT_VERSION_ADDITION" ]
+then
+    # Return the canonical or full pathname of a file or
+    # directory. This is a replacement for readlink which
+    # is not portable. Will preserve symlinks.
+    function _canonicalPath
+    {
+	local path="$1" ; shift
+	if [ -d "$path" ]
+	then
+            echo "$(cd "$path" ; pwd -L)"
+	else
+            local b=$(basename "$path")
+            local p=$(dirname "$path")
+            echo "$(cd "$p" ; pwd -L)/$b"
+	fi
+    }
+
+    canonicalFullScriptPath=$(_canonicalPath "$BASH_SOURCE")
+    dirName="$(basename $(dirname $(dirname $canonicalFullScriptPath)))"
+    suffix="$(echo $dirName | sed -e "s/OpenFOAM-$WM_PROJECT_VERSION//")"
+    if [ -n $suffix ]
+    then
+	# Keep the suffix as is. Will preserve the '-' or '_' characters 
+	# that could be present at the beginning of the suffix.
+	export WM_PROJECT_VERSION_ADDITION=$suffix
+    fi
+    unset dirName suffix canonicalFullScriptPath
+fi
+
+if [ -n "$WM_PROJECT_VERSION_ADDITION" ]
+then
+    export WM_PROJECT_VERSION=$WM_PROJECT_VERSION$WM_PROJECT_VERSION_ADDITION
+fi
 
 # helps to easily write #ifdefs to detect a dev-version
 export FOAM_DEV=1

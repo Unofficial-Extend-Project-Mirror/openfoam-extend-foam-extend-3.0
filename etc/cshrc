@@ -31,7 +31,23 @@
 #
 #------------------------------------------------------------------------------
 
-# make sure that this variable is set un purpose
+# Return the canonical or full pathname of a file or
+# directory. This is a replacement for readlink which
+# is not portable. Will preserve symlinks
+alias _canonicalPath '            \\
+    set pathHere=\!*;             \\
+    set b=`basename $pathHere`;   \\
+    set p=`dirname $pathHere`;    \\
+    eval "                        \\
+    if (-d \!*) then              \\
+        (cd $pathHere; pwd -L)    \\
+    else                          \\
+        echo `(cd $p; pwd -L)`/$b \\
+    endif"'
+
+# make sure that this variable is set on purpose
+unset WM_PROJECT_VERSION_ADDITION
+unsetenv WM_PROJECT_VERSION_ADDITION
 
 set called=($_)
 set prefSettingFile=$called[2].preset
@@ -43,6 +59,29 @@ endif
 
 setenv WM_PROJECT OpenFOAM
 setenv WM_PROJECT_VERSION 1.6-ext
+
+if( ! $?WM_PROJECT_VERSION_ADDITION ) then
+    set canonicalFullScriptPath=`_canonicalPath $called[2]`
+
+    if ( "$canonicalFullScriptPath" != "" ) then
+	set pathHere=`dirname $canonicalFullScriptPath`
+	set pathHere=`dirname $pathHere`
+	set dirName=`basename $pathHere`
+	set suffix=`echo $dirName | sed -e "s/OpenFOAM-$WM_PROJECT_VERSION//"`
+	if ( "$suffix" != "" ) then
+            # Keep the suffix as is. Will preserve the '-' or '_' characters 
+	    # that could be present at the beginning of the suffix.
+            setenv WM_PROJECT_VERSION_ADDITION $suffix
+	endif
+	unset dirName pathHere suffix
+    endif
+    unset canonicalFullScriptPath
+endif
+unset prefSettingFile called
+
+if ( $?WM_PROJECT_VERSION_ADDITION ) then
+    setenv WM_PROJECT_VERSION $WM_PROJECT_VERSION$WM_PROJECT_VERSION_ADDITION
+endif
 
 # helps to easily write #ifdefs to detect a dev-version
 setenv FOAM_DEV 1
