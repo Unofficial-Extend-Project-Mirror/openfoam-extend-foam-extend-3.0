@@ -23,7 +23,7 @@ writeCompression uncompressed;
 
 runTimeModifiable yes;
 
-application     icoFoam;
+application     multiSolverDemo;
 
 deltaT          0.01;
 
