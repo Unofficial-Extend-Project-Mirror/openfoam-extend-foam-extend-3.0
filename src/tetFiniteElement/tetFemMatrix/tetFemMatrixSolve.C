@@ -26,6 +26,8 @@ Description
 
 \*---------------------------------------------------------------------------*/
 
+#include "blockLduSolvers.H"
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -34,130 +36,31 @@ namespace Foam
 // * * * * * * * * * * * * * * * * Solvers * * * * * * * * * * * * * * * * * //
 
 template<class Type>
-lduSolverPerformance tetFemMatrix<Type>::solve
+BlockSolverPerformance<Type> tetFemMatrix<Type>::solve
 (
      const dictionary& solverControls
 )
 {
     if (debug)
     {
-        Info<< "tetFemMatrix<Type>::solve(const dictionary&) : "
-               "solving tetFemMatrix<Type>"
-            << endl;
+        InfoIn("tetFemMatrix<Type>::solve(const dictionary&)")
+            << "solving tetFemMatrix<Type>" << endl;
     }
 
-    // Check the matrix
-    if (debug > 1)
-    {
-        this->check();
-    }
+    // Set boundary conditions
+    this->setBoundaryConditions();
 
-    lduSolverPerformance solverPerfVec
-    (
-        "tetFemMatrix<Type>::solve",
-        psi_.name()
-    );
-
-    // Add boundary source for gradient-type conditions
-    addBoundarySourceDiag();
-
-    // Store the boundary coefficients for insertion of boundary conditions
-    storeBoundaryCoeffs();
-
-    typename Type::labelType validComponents
-    (
-        pow
+    BlockSolverPerformance<Type> solverPerf =
+        BlockLduSolver<Type>::New
         (
-            psi_.mesh()().solutionD(),
-            pTraits<typename powProduct<Vector<label>, Type::rank>::type>::zero
-        )
-    );
-
-    // Make a copy of interfaces: no longer a reference
-    // HJ, 20/Nov/2007
-    lduInterfaceFieldPtrsList interfaces = psi_.boundaryField().interfaces();
-
-    for (direction cmpt = 0; cmpt < Type::nComponents; cmpt++)
-    {
-        if (validComponents[cmpt] == -1) continue;
-
-        scalarField psiCmpt = psi_.internalField().component(cmpt);
-        scalarField sourceCmpt = source_.component(cmpt);
-
-        // Set component boundary conditions
-        setComponentBoundaryConditions(cmpt, psiCmpt, sourceCmpt);
-
-        // Add the coupling coefficients
-        addCouplingCoeffs();
-
-        addCouplingSource(sourceCmpt);
-
-        // Prepare for coupled interface update
-        FieldField<Field, scalar> coupledBouCoeffs
-        (
-            psi_.boundaryField().size()
-        );
-
-        FieldField<Field, scalar> coupledIntCoeffs
-        (
-            psi_.boundaryField().size()
-        );
-
-        forAll(psi_.boundaryField(), patchI)
-        {
-            const tetPolyPatchField<Type>& ptf = psi_.boundaryField()[patchI];
-
-            coupledBouCoeffs.set
-            (
-                patchI,
-                ptf.cutBouCoeffs(*this)
-            );
-
-            coupledIntCoeffs.set
-            (
-                patchI,
-                ptf.cutIntCoeffs(*this)
-            );
-        }
-
-        eliminateCouplingCoeffs();
-
-        scalarField res(psi_.size(), 0);
-        lduMatrix::residual
-        (
-            res,
-            psiCmpt,
-            sourceCmpt,
-            coupledBouCoeffs,
-            interfaces,
-            cmpt
-        );
-
-        lduSolverPerformance solverPerf = lduSolver::New
-        (
-            psi_.name() + pTraits<Type>::componentNames[cmpt],
+            x_.name(),
             *this,
-            coupledBouCoeffs,
-            coupledIntCoeffs,
-            interfaces,
             solverControls
-        )->solve(psiCmpt, sourceCmpt, cmpt);
+        )->solve(x_, b_);
+        
+    solverPerf.print();
 
-        solverPerf.print();
-
-        if
-        (
-            solverPerf.initialResidual() > solverPerfVec.initialResidual()
-         && !solverPerf.singular()
-        )
-        {
-            solverPerfVec = solverPerf;
-        }
-
-        psi_.internalField().replace(cmpt, psiCmpt);
-
-        reconstructMatrix();
-    }
+    this->reconstructMatrix();
 
     if (debug)
     {
@@ -165,16 +68,16 @@ lduSolverPerformance tetFemMatrix<Type>::solve
             << endl;
     }
 
-    psi_.correctBoundaryConditions();
+    x_.correctBoundaryConditions();
 
-    return solverPerfVec;
+    return solverPerf;
 }
 
 
 template<class Type>
-lduSolverPerformance tetFemMatrix<Type>::solve()
+BlockSolverPerformance<Type> tetFemMatrix<Type>::solve()
 {
-    return solve(psi_.mesh().solutionDict().solver(psi_.name()));
+    return solve(x_.mesh().solutionDict().solver(x_.name()));
 }
 
 
@@ -182,57 +85,13 @@ lduSolverPerformance tetFemMatrix<Type>::solve()
 template<class Type>
 tmp<Field<Type> > tetFemMatrix<Type>::residual()
 {
-    tmp<Field<Type> > tres(psi_.size());
+    // Set boundary conditions
+    this->setBoundaryConditions();
 
-    // Store the boundary coefficients for insertion of boundary conditions
-    storeBoundaryCoeffs();
+    tmp<Field<Type> > tres =
+        BlockLduMatrix<Type>::residual(x_, b_);
 
-    // Make a copy of interfaces: no longer a reference
-    // HJ, 20/Nov/2007
-    lduInterfaceFieldPtrsList interfaces = psi_.boundaryField().interfaces();
-
-    // Loop over field components
-    for (direction cmpt = 0; cmpt < Type::nComponents; cmpt++)
-    {
-        scalarField PsiInternalCmpt = psi_.internalField().component(cmpt);
-        scalarField sourceCmpt = source_.component(cmpt);
-
-        setComponentBoundaryConditions(cmpt, PsiInternalCmpt, sourceCmpt);
-
-        // Add the coupling coefficients
-        addCouplingCoeffs();
-        addCouplingSource(sourceCmpt);
-
-        // Prepare for coupled interface update
-        FieldField<Field, scalar> coupledBouCoeffs(psi_.boundaryField().size());
-
-        forAll(psi_.boundaryField(), patchI)
-        {
-            const tetPolyPatchField<Type>& ptf = psi_.boundaryField()[patchI];
-            coupledBouCoeffs.set
-            (
-                patchI,
-                new scalarField(ptf.cutBouCoeffs(*this))
-            );
-        }
-
-        eliminateCouplingCoeffs();
-
-        tres().replace
-        (
-            cmpt,
-            lduMatrix::residual
-            (
-                psi_.internalField().component(cmpt),
-                sourceCmpt,
-                coupledBouCoeffs,
-                interfaces,
-                cmpt
-            )
-        );
-
-        reconstructMatrix();
-    }
+    this->reconstructMatrix();
 
     return tres;
 }

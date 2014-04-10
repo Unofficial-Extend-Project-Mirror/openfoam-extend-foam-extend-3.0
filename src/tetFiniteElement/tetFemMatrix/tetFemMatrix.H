@@ -27,6 +27,9 @@ Class
 Description
     Tetrahedral Finite Element matrix.
 
+Author
+    Hrvoje Jasak, Wikki Ltd.  All rights reserved
+
 SourceFiles
     tetFemMatrix.C
     tetFemMatrixSolve.C
@@ -38,12 +41,8 @@ SourceFiles
 
 #include "tetPointFields.H"
 #include "elementFields.H"
-#include "lduMatrix.H"
-#include "tmp.H"
-#include "autoPtr.H"
-#include "dimensionedTypes.H"
-#include "Map.H"
-#include "constraints.H"
+#include "blockLduMatrices.H"
+#include "BlockSolverPerformance.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -60,33 +59,44 @@ Ostream& operator<<(Ostream&, const tetFemMatrix<Type>&);
 
 
 /*---------------------------------------------------------------------------*\
-                           Class tetFemMatrix Declaration
+                        Class tetFemMatrix Declaration
 \*---------------------------------------------------------------------------*/
 
 template<class Type>
 class tetFemMatrix
 :
-    public refCount,
-    public lduMatrix
+    public BlockLduMatrix<Type>
 {
+public:
+
+    // Public typedefs
+
+        typedef
+        GeometricField<Type, tetPolyPatchField, tetPointMesh> xTypeGeoField;
+
+        typedef
+        GeometricField<Type, elementPatchField, elementMesh> elemTypeGeoField;
+
+        typedef BlockConstraint<Type> ConstraintType;
+
+private:
+
     // Private data
 
         //- Reference to GeometricField
-        GeometricField<Type, tetPolyPatchField, tetPointMesh>& psi_;
+        xTypeGeoField& x_;
 
         //- Dimension set
         dimensionSet dimensions_;
 
         //- Source term
-        Field<Type> source_;
+        Field<Type> b_;
 
         //- Are boundary conditions set?
         mutable bool boundaryConditionsSet_;
 
         //- Equation triangle map
-        mutable Map<constraint<Type> > fixedEqns_;
-
-        direction solvingComponent;
+        mutable Map<ConstraintType> fixedEqns_;
 
 
     // Private static data
@@ -95,13 +105,14 @@ class tetFemMatrix
         //  Equals to the estimated fraction of fixed nodes in the matrix
         static const label fixFillIn;
 
+
     // Private Member Functions
 
         //- Add boundary source and diagonal for gradient-type conditions
         void addBoundarySourceDiag();
 
-        //- Store boundary coefficients
-        void storeBoundaryCoeffs() const;
+        //- Set boundary conditions
+        void setBoundaryConditions();
 
         //- Add coupling coefficients
         //  In parallel computations, the consequence of cell-by-cell
@@ -119,17 +130,8 @@ class tetFemMatrix
         //  HJ, 13/Nov/2001
         void addCouplingCoeffs();
 
+        //- Eliminate coupling coefficients
         void eliminateCouplingCoeffs();
-
-        void addCouplingSource(scalarField&) const;
-
-        //- Set component boundary conditions
-        void setComponentBoundaryConditions
-        (
-            const direction,
-            scalarField& psiCmpt,
-            scalarField& sourceCmpt
-        );
 
         //- Reconstruct matrix
         void reconstructMatrix();
@@ -146,27 +148,15 @@ public:
 
     ClassName("tetFemMatrix");
 
-    typedef constraint<Type> ConstraintType;
-
 
     // Constructors
 
         //- Construct given a field to solve for
-        tetFemMatrix
-        (
-            GeometricField<Type, tetPolyPatchField, tetPointMesh>&,
-            const dimensionSet&
-        );
+        tetFemMatrix(xTypeGeoField&, const dimensionSet&);
 
         //- Construct as copy
         tetFemMatrix(const tetFemMatrix<Type>&);
 
-        //- Construct from Istream given field to solve for
-        tetFemMatrix
-        (
-            GeometricField<Type, tetPolyPatchField, tetPointMesh>&,
-            Istream&
-        );
 
 
     // Destructor
@@ -178,15 +168,14 @@ public:
 
         // Access
 
-            const GeometricField<Type, tetPolyPatchField, tetPointMesh>&
-            psi() const
+            const xTypeGeoField& x() const
             {
-                return psi_;
+                return x_;
             }
 
-            GeometricField<Type, tetPolyPatchField, tetPointMesh>& psi()
+            xTypeGeoField& x()
             {
-                return psi_;
+                return x_;
             }
 
             const dimensionSet& dimensions() const
@@ -194,18 +183,15 @@ public:
                 return dimensions_;
             }
 
-            Field<Type>& source()
+            Field<Type>& b()
             {
-                return source_;
+                return b_;
             }
 
-            const Field<Type>& source() const
+            const Field<Type>& b() const
             {
-                return source_;
+                return b_;
             }
-
-            //- Does the matrix need a reference level for solution
-            //bool needReference();
 
 
         // Operations
@@ -227,16 +213,13 @@ public:
             //  alpha is read from controlDict
             void relax();
 
-            //- Check matrix for diagonal dominance
-            void check();
-
             //- Solve returning the solution statistics.
             //  Convergence tolerance read from dictionary
-            lduSolverPerformance solve(const dictionary&);
+            BlockSolverPerformance<Type> solve(const dictionary&);
 
             //- Solve returning the solution statistics.
             //  Solver controls read from tetFemSolution
-            lduSolverPerformance solve();
+            BlockSolverPerformance<Type> solve();
 
             //- Return the matrix residual
             tmp<Field<Type> > residual();
@@ -255,24 +238,11 @@ public:
         void operator-=(const tetFemMatrix<Type>&);
         void operator-=(const tmp<tetFemMatrix<Type> >&);
 
-        void operator+=
-        (
-            const GeometricField<Type, elementPatchField, elementMesh>&
-        );
-        void operator+=
-        (
-            const tmp<GeometricField<Type, elementPatchField, elementMesh> >&
-        );
+        void operator+=(const elemTypeGeoField&);
+        void operator+=(const tmp<elemTypeGeoField>&);
 
-        void operator-=
-        (
-            const GeometricField<Type, elementPatchField, elementMesh>&
-        );
-
-        void operator-=
-        (
-            const tmp<GeometricField<Type, elementPatchField, elementMesh> >&
-        );
+        void operator-=(const elemTypeGeoField&);
+        void operator-=(const tmp<elemTypeGeoField >&);
 
         void operator+=(const dimensioned<Type>&);
         void operator-=(const dimensioned<Type>&);
@@ -321,26 +291,26 @@ void checkMethod
 //- Solve returning the solution statistics given convergence tolerance
 //  Solver controls read from Istream
 template<class Type>
-lduSolverPerformance solve(tetFemMatrix<Type>&, Istream&);
+BlockSolverPerformance<Type> solve(tetFemMatrix<Type>&, Istream&);
 
 
 //- Solve returning the solution statistics given convergence tolerance,
 //  deleting temporary matrix after solution.
 //  Solver controls read from Istream
 template<class Type>
-lduSolverPerformance solve(const tmp<tetFemMatrix<Type> >&, Istream&);
+BlockSolverPerformance<Type> solve(const tmp<tetFemMatrix<Type> >&, Istream&);
 
 
 //- Solve returning the solution statistics given convergence tolerance
 //  Convergence tolerance read from controlDict
 template<class Type>
-lduSolverPerformance solve(tetFemMatrix<Type>&);
+BlockSolverPerformance<Type> solve(tetFemMatrix<Type>&);
 
 //- Solve returning the solution statistics given convergence tolerance,
 //  deleting temporary matrix after solution.
 //  Convergence tolerance read from controlDict
 template<class Type>
-lduSolverPerformance solve(const tmp<tetFemMatrix<Type> >&);
+BlockSolverPerformance<Type> solve(const tmp<tetFemMatrix<Type> >&);
 
 
 // * * * * * * * * * * * * * * * Global operators  * * * * * * * * * * * * * //
@@ -649,7 +619,6 @@ tmp<tetFemMatrix<Type> > operator*
 #   include "tetFemMatrix.C"
 #   include "tetFemMatrixSolve.C"
 #   include "tetFemMatrixTools.C"
-#   include "tetFemMatrixCheck.C"
 #endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

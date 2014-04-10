@@ -97,7 +97,6 @@ $(constraintElementPatchFields)/global/globalElementPatchFields.C
 fields/tetPointFields/tetPointFields.C
 fields/elementFields/elementFields.C
 
-tetFemMatrix/tetFemScalarMatrix.C
 tetFemMatrix/tetFemMatrices.C
 
 LIB = $(FOAM_LIBBIN)/libtetFiniteElement

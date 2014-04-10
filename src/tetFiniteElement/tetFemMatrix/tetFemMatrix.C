@@ -47,23 +47,22 @@ const label tetFemMatrix<Type>::fixFillIn = 4;
 template<class Type>
 tetFemMatrix<Type>::tetFemMatrix
 (
-    GeometricField<Type, tetPolyPatchField, tetPointMesh>& psi,
+    GeometricField<Type, tetPolyPatchField, tetPointMesh>& x,
     const dimensionSet& ds
 )
 :
-    lduMatrix(psi.mesh()),
-    psi_(psi),
+    BlockLduMatrix<Type>(x.mesh()),
+    x_(x),
     dimensions_(ds),
-    source_(psi.size(), pTraits<Type>::zero),
+    b_(x.size(), pTraits<Type>::zero),
     boundaryConditionsSet_(false),
-    fixedEqns_(psi.mesh().lduAddr().size()/fixFillIn),
-    solvingComponent(0)
+    fixedEqns_(Foam::min(x.mesh().lduAddr().size()/fixFillIn, 100))
 {
     if (debug)
     {
         Info<< "tetFemMatrix<Type>(GeometricField<Type, tetPolyPatchField, "
             << "tetPointMesh>&, const dimensionSet&) : "
-            << "constructing tetFemMatrix<Type> for field " << psi_.name()
+            << "constructing tetFemMatrix<Type> for field " << x_.name()
             << endl;
     }
 }
@@ -72,44 +71,17 @@ tetFemMatrix<Type>::tetFemMatrix
 template<class Type>
 tetFemMatrix<Type>::tetFemMatrix(const tetFemMatrix<Type>& tetFem)
 :
-    refCount(),
-    lduMatrix(tetFem),
-    psi_(tetFem.psi_),
+    BlockLduMatrix<Type>(tetFem),
+    x_(tetFem.x_),
     dimensions_(tetFem.dimensions_),
-    source_(tetFem.source_),
+    b_(tetFem.b_),
     boundaryConditionsSet_(false),
-    fixedEqns_(psi_.mesh().lduAddr().size()/fixFillIn),
-    solvingComponent(0)
+    fixedEqns_(Foam::min(x_.mesh().lduAddr().size()/fixFillIn, 100))
 {
     if (debug)
     {
-        Info<< "tetFemMatrix<Type>::tetFemMatrix(const tetFemMatrix<Type>&) : "
-            << "copying tetFemMatrix<Type> for field " << psi_.name()
-            << endl;
-    }
-}
-
-
-template<class Type>
-tetFemMatrix<Type>::tetFemMatrix
-(
-    GeometricField<Type, tetPolyPatchField, tetPointMesh>& psi,
-    Istream& is
-)
-:
-    lduMatrix(psi.mesh()),
-    psi_(psi),
-    dimensions_(is),
-    source_(is),
-    boundaryConditionsSet_(false),
-    fixedEqns_(psi.mesh().lduAddr().size()/fixFillIn),
-    solvingComponent(0)
-{
-    if (debug)
-    {
-        Info<< "tetFemMatrix<Type>(GeometricField<Type, tetPolyPatchField, "
-            << "tetPointMesh>&, Istream&) : "
-            << "constructing tetFemMatrix<Type> for field " << psi_.name()
+        InfoIn("tetFemMatrix<Type>::tetFemMatrix(const tetFemMatrix<Type>&)")
+            << "copying tetFemMatrix<Type> for field " << x_.name()
             << endl;
     }
 }
@@ -121,7 +93,7 @@ tetFemMatrix<Type>::~tetFemMatrix()
     if (debug)
     {
         Info<< "tetFemMatrix<Type>::~tetFemMatrix<Type>() : "
-            << "destroying tetFemMatrix<Type> for field " << psi_.name()
+            << "destroying tetFemMatrix<Type> for field " << x_.name()
             << endl;
     }
 }
@@ -129,38 +101,6 @@ tetFemMatrix<Type>::~tetFemMatrix()
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-// Does the matrix need a reference level for solution
-// template<class Type>
-// bool tetFemMatrix<Type>::needReference()
-// {
-//     // Search all boundary conditions, if any are
-//     // fixed-value or mixed (Robin) do not set reference level for solution.
-
-//     static bool searched = false;
-//     static bool needRef = true;
-
-//     if (!searched)
-//     {
-//         const BoundaryField<Type>& patchFields = psi_.boundaryField();
-
-//         forAll(patchFields, patchi)
-//         {
-//             if (patchFields[patchi].fixesValue())
-//             {
-//                 needRef = false;
-//             }
-//         }
-
-//         reduce(needRef, andOp<bool>());
-
-//         searched = true;
-//     }
-
-//     return needRef;
-// }
-
-
-// Set constrained equation
 template<class Type>
 void tetFemMatrix<Type>::addConstraint
 (
@@ -168,7 +108,7 @@ void tetFemMatrix<Type>::addConstraint
     const Type& value
 )
 {
-    constraint<Type> cp(vertex, value);
+    ConstraintType cp(vertex, value);
 
     if (!fixedEqns_.found(vertex))
     {
@@ -192,31 +132,7 @@ void tetFemMatrix<Type>::addConstraint
 template<class Type>
 void tetFemMatrix<Type>::relax(const scalar alpha)
 {
-    if (alpha <= 0)
-    {
-        return;
-    }
-
-    Field<Type>& S = source();
-    scalarField& D = diag();
-
-    // Store the current unrelaxed diagonal for use in updating the source
-    scalarField D0(D);
-
-    // Calculate the sum-mag off-diagonal from the interior faces
-    scalarField sumOff(D.size(), 0.0);
-    sumMagOffDiag(sumOff);
-
-    // Some treatment of coupled boundaries may be added here
-    // HJ, 3/Sep/2007
-
-    // Ensure the matrix is diagonally dominant...
-    max(D, D, sumOff);
-
-    // ... then relax
-    D /= alpha;
-
-    S += (D - D0)*psi_.internalField();
+    this->relax(x_, b_, alpha);
 }
 
 
@@ -225,9 +141,9 @@ void tetFemMatrix<Type>::relax()
 {
     scalar alpha = 0;
 
-    if (psi_.mesh().solutionDict().relax(psi_.name()))
+    if (x_.mesh().solutionDict().relax(x_.name()))
     {
-        alpha = psi_.mesh().solutionDict().relaxationFactor(psi_.name());
+        alpha = x_.mesh().solutionDict().relaxationFactor(x_.name());
     }
 
     if (alpha > 0)
@@ -251,7 +167,7 @@ void tetFemMatrix<Type>::operator=(const tetFemMatrix<Type>& tetFem)
             << abort(FatalError);
     }
 
-    if (&psi_ != &(tetFem.psi_))
+    if (&x_ != &(tetFem.x_))
     {
         FatalErrorIn
         (
@@ -260,8 +176,8 @@ void tetFemMatrix<Type>::operator=(const tetFemMatrix<Type>& tetFem)
             << abort(FatalError);
     }
 
-    lduMatrix::operator=(tetFem);
-    source_ = tetFem.source_;
+    BlockLduMatrix<Type>::operator=(tetFem);
+    b_ = tetFem.b_;
     boundaryConditionsSet_ = false;
     fixedEqns_.clear();
 }
@@ -278,8 +194,8 @@ void tetFemMatrix<Type>::operator=(const tmp<tetFemMatrix<Type> >& ttetFem)
 template<class Type>
 void tetFemMatrix<Type>::negate()
 {
-    lduMatrix::negate();
-    source_.negate();
+    BlockLduMatrix<Type>::negate();
+    b_.negate();
 }
 
 
@@ -289,8 +205,8 @@ void tetFemMatrix<Type>::operator+=(const tetFemMatrix<Type>& tetFem)
     checkMethod(*this, tetFem, "+=");
 
     dimensions_ += tetFem.dimensions_;
-    lduMatrix::operator+=(tetFem);
-    source_ += tetFem.source_;
+    BlockLduMatrix<Type>::operator+=(tetFem);
+    b_ += tetFem.b_;
 }
 
 
@@ -305,18 +221,18 @@ void tetFemMatrix<Type>::operator+=(const tmp<tetFemMatrix<Type> >& ttetFem)
 template<class Type>
 void tetFemMatrix<Type>::operator+=
 (
-    const GeometricField<Type, elementPatchField, elementMesh>& su
+    const elemTypeGeoField& su
 )
 {
     checkMethod(*this, su, "+=");
-    source() -= distributeSource(su.internalField());
+    b() -= distributeField(su.internalField());
 }
 
 
 template<class Type>
 void tetFemMatrix<Type>::operator+=
 (
-    const tmp<GeometricField<Type, elementPatchField, elementMesh> >& tsu
+    const tmp<elemTypeGeoField>& tsu
 )
 {
     operator+=(tsu());
@@ -330,8 +246,8 @@ void tetFemMatrix<Type>::operator-=(const tetFemMatrix<Type>& tetFem)
     checkMethod(*this, tetFem, "+=");
 
     dimensions_ -= tetFem.dimensions_;
-    lduMatrix::operator-=(tetFem);
-    source_ -= tetFem.source_;
+    BlockLduMatrix<Type>::operator-=(tetFem);
+    b_ -= tetFem.b_;
 }
 
 
@@ -346,18 +262,18 @@ void tetFemMatrix<Type>::operator-=(const tmp<tetFemMatrix<Type> >& ttetFem)
 template<class Type>
 void tetFemMatrix<Type>::operator-=
 (
-    const GeometricField<Type, elementPatchField, elementMesh>& su
+    const elemTypeGeoField& su
 )
 {
     checkMethod(*this, su, "-=");
-    source() += distributeSource(su.internalField());
+    b() += distributeField(su.internalField());
 }
 
 
 template<class Type>
 void tetFemMatrix<Type>::operator-=
 (
-    const tmp<GeometricField<Type, elementPatchField, elementMesh> >& tsu
+    const tmp<elemTypeGeoField>& tsu
 )
 {
     operator-=(tsu());
@@ -372,7 +288,7 @@ void tetFemMatrix<Type>::operator+=
 )
 {
     checkMethod(*this, su, "+=");
-    source() -= distributeSource(Field<Type>(psi_.mesh().nCells(), su.value()));
+    b() -= distributeField(Field<Type>(x.mesh().nCells(), su.value()));
 }
 
 
@@ -383,7 +299,7 @@ void tetFemMatrix<Type>::operator-=
 )
 {
     checkMethod(*this, su, "-=");
-    source() += distributeSource(Field<Type>(psi_.mesh().nCells(), su.value()));
+    b() += distributeField(Field<Type>(x.mesh().nCells(), su.value()));
 }
 
 
@@ -394,8 +310,8 @@ void tetFemMatrix<Type>::operator*=
 )
 {
     dimensions_ *= ds.dimensions();
-    lduMatrix::operator*=(ds.value());
-    source_ *= ds.value();
+    BlockLduMatrix<Type>::operator*=(ds.value());
+    b_ *= ds.value();
 }
 
 
@@ -409,7 +325,7 @@ void checkMethod
     const char* op
 )
 {
-    if (&tetFem1.psi() != &tetFem2.psi())
+    if (&tetFem1.x() != &tetFem2.x())
     {
         FatalErrorIn
         (
@@ -417,9 +333,9 @@ void checkMethod
             "const tetFemMatrix<Type>&) : "
         )   << "incompatible fields for operation "
             << endl << "    "
-            << "[" << tetFem1.psi().name() << "] "
+            << "[" << tetFem1.x().name() << "] "
             << op
-            << " [" << tetFem1.psi().name() << "]"
+            << " [" << tetFem1.x().name() << "]"
             << abort(FatalError);
     }
 
@@ -431,10 +347,10 @@ void checkMethod
             "const tetFemMatrix<Type>&) : "
         )   << "incompatible dimensions for operation "
             << endl << "    "
-            << "[" << tetFem1.psi().name() << tetFem1.dimensions()/dimVolume
+            << "[" << tetFem1.x().name() << tetFem1.dimensions()/dimVolume
             << " ] "
             << op
-            << " [" << tetFem1.psi().name() << tetFem2.dimensions()/dimVolume
+            << " [" << tetFem1.x().name() << tetFem2.dimensions()/dimVolume
             << " ]"
             << abort(FatalError);
     }
@@ -462,10 +378,10 @@ void checkMethod
             "elementMesh>&) : "
         )   << "incompatible dimensions for operation "
             << endl << "    "
-            << "[" << tetFem.psi().name() << tetFem.dimensions()/dimVolume
+            << "[" << tetFem.x().name() << tetFem.dimensions()/dimVolume
             << " ] "
             << op
-            << " [" << tetFem.psi().name() << vf.dimensions() << " ]"
+            << " [" << tetFem.x().name() << vf.dimensions() << " ]"
             << abort(FatalError);
     }
 }
@@ -491,7 +407,7 @@ void checkMethod
             "const dimensioned<Type>&) : "
         )   << "incompatible dimensions for operation "
             << endl << "    "
-            << "[" << tetFem.psi().name() << tetFem.dimensions()/dimVolume
+            << "[" << tetFem.x().name() << tetFem.dimensions()/dimVolume
             << " ] "
             << op
             << " [" << dt.name() << dt.dimensions() << " ]"
@@ -501,7 +417,7 @@ void checkMethod
 
 
 template<class Type>
-lduSolverPerformance solve
+BlockSolverPerformance<Type> solve
 (
     tetFemMatrix<Type>& tetFem,
     Istream& solverControls
@@ -510,14 +426,15 @@ lduSolverPerformance solve
     return tetFem.solve(solverControls);
 }
 
+
 template<class Type>
-lduSolverPerformance solve
+BlockSolverPerformance<Type> solve
 (
     const tmp<tetFemMatrix<Type> >& ttetFem,
     Istream& solverControls
 )
 {
-    lduSolverPerformance solverPerf =
+    BlockSolverPerformance<Type> solverPerf =
         const_cast<tetFemMatrix<Type>&>(ttetFem()).solve(solverControls);
 
     ttetFem.clear();
@@ -527,16 +444,16 @@ lduSolverPerformance solve
 
 
 template<class Type>
-lduSolverPerformance solve(tetFemMatrix<Type>& tetFem)
+BlockSolverPerformance<Type> solve(tetFemMatrix<Type>& tetFem)
 {
     return tetFem.solve();
 }
 
 
 template<class Type>
-lduSolverPerformance solve(const tmp<tetFemMatrix<Type> >& ttetFem)
+BlockSolverPerformance<Type> solve(const tmp<tetFemMatrix<Type> >& ttetFem)
 {
-    lduSolverPerformance solverPerf =
+    BlockSolverPerformance<Type> solverPerf =
         const_cast<tetFemMatrix<Type>&>(ttetFem()).solve();
 
     ttetFem.clear();
@@ -1187,9 +1104,9 @@ tmp<tetFemMatrix<Type> > operator*
 template<class Type>
 Ostream& operator<<(Ostream& os, const tetFemMatrix<Type>& tetFem)
 {
-    os  << static_cast<const lduMatrix&>(tetFem) << nl
+    os  << static_cast<const BlockLduMatrix<Type>&>(tetFem) << nl
         << tetFem.dimensions_ << nl
-        << tetFem.source_ << endl;
+        << tetFem.b_ << endl;
 
     os.check("Ostream& operator<<(Ostream&, tetFemMatrix<Type>&");
 

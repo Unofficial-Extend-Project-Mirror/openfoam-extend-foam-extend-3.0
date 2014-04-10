@@ -98,7 +98,7 @@ typename Foam::BlockSolverPerformance<Type> Foam::BlockCGSolver<Type>::solve
 
         scalar alpha, beta, wApA;
 
-        Field<Type> pA(x.size());
+        Field<Type> pA(x.size(), pTraits<Type>::zero);
 
         do
         {

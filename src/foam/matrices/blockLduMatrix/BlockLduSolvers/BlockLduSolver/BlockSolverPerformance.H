@@ -90,6 +90,19 @@ public:
 
     // Constructors
 
+            //- Construct null
+            BlockSolverPerformance()
+            :
+                solverName_("unknown"),
+                fieldName_("unknown"),
+                initialResidual_(pTraits<Type>::zero),
+                finalResidual_(pTraits<Type>::zero),
+                nIterations_(0),
+                converged_(false),
+                singular_(false)
+            {}
+
+
         //- Construct with solver and field name
         BlockSolverPerformance
         (

@@ -70,6 +70,9 @@ Ostream& operator<<(Ostream&, const BlockLduMatrix<Type>&);
 template<class Type>
 class BlockConstraint;
 
+template<class Type>
+class BlockSolverPerformance;
+
 
 /*---------------------------------------------------------------------------*\
                         Class BlockLduMatrix Declaration
@@ -87,6 +90,7 @@ public:
         typedef CoeffField<Type> TypeCoeffField;
         typedef Field<Type> TypeField;
         typedef BlockConstraint<Type> ConstraintType;
+        typedef BlockSolverPerformance<Type> solverPerformance;
 
 
 private:

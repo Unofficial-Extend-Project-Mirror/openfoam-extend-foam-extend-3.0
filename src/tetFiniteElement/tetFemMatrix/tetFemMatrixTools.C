@@ -37,13 +37,12 @@ namespace Foam
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
-// Add boundary source for gradient-type conditions
 template<class Type>
 void tetFemMatrix<Type>::addBoundarySourceDiag()
 {
     // Loop through all boundaries and fix the condition
     const FieldField<tetPolyPatchField, Type>& patches =
-        psi().boundaryField();
+        x_.boundaryField();
 
     forAll (patches, patchI)
     {
@@ -53,7 +52,7 @@ void tetFemMatrix<Type>::addBoundarySourceDiag()
 
 
 template<class Type>
-void tetFemMatrix<Type>::storeBoundaryCoeffs() const
+void tetFemMatrix<Type>::setBoundaryConditions()
 {
     // Make a map of all possible equations and only fix the ones that are
     // requested. Once the list of requested fixes is complete, collapse the
@@ -67,7 +66,9 @@ void tetFemMatrix<Type>::storeBoundaryCoeffs() const
 
         // Loop through all boundaries and fix the condition
         const FieldField<tetPolyPatchField, Type>& patches =
-            psi().boundaryField();
+            x_.boundaryField();
+
+        this->addBoundarySourceDiag();
 
         forAll (patches, patchI)
         {
@@ -79,42 +80,18 @@ void tetFemMatrix<Type>::storeBoundaryCoeffs() const
 
         forAll (toc, eqnI)
         {
-            fixedEqns_[toc[eqnI]].setMatrix(*this);
+            fixedEqns_[toc[eqnI]].setMatrix(*this, x_, b_);
         }
-    }
-}
 
+        forAll (toc, eqnI)
+        {
+            fixedEqns_[toc[eqnI]].eliminateEquation(*this, b_);
+        }
 
-template<class Type>
-void tetFemMatrix<Type>::setComponentBoundaryConditions
-(
-    const direction d,
-    scalarField& psiCmpt,
-    scalarField& sourceCmpt
-)
-{
-    if (!boundaryConditionsSet_)
-    {
-        FatalErrorIn
-        (
-            "void tetFemMatrix<Type>::setComponentBoundaryConditions("
-            "const direction& d, scalarField& psiCmpt, "
-            "scalarField& sourceCmpt)"
-        )   << "cannot reconstruct matrix: boundary conditions not set"
-            << abort(FatalError);
-    }
-
-    // Loop through all fixed equations and set boundary condition
-    labelList toc = fixedEqns_.toc();
-
-    forAll (toc, eqnI)
-    {
-        fixedEqns_[toc[eqnI]].eliminateEquation(*this, d, sourceCmpt);
-    }
-
-    forAll (toc, eqnI)
-    {
-        fixedEqns_[toc[eqnI]].setSourceDiag(*this, d, psiCmpt, sourceCmpt);
+        forAll (toc, eqnI)
+        {
+            fixedEqns_[toc[eqnI]].setSourceDiag(*this, x_, b_);
+        }
     }
 }
 
@@ -138,6 +115,9 @@ void tetFemMatrix<Type>::reconstructMatrix()
     {
         fixedEqns_[toc[eqnI]].reconstructMatrix(*this);
     }
+
+    // Matrix is restored
+    boundaryConditionsSet_ = true;
 }
 
 
@@ -146,144 +126,81 @@ void tetFemMatrix<Type>::addCouplingCoeffs()
 {
     // Diagonal
 
-    if (hasDiag())
+    if (this->hasDiag())
     {
         // Initialise diagonal transfer
-        forAll (psi_.boundaryField(), patchI)
+        forAll (x_.boundaryField(), patchI)
         {
-            const tetPolyPatchField<Type>& ptf = psi_.boundaryField()[patchI];
+            const tetPolyPatchField<Type>& ptf = x_.boundaryField()[patchI];
 
             if (ptf.coupled())
             {
-                ptf.initAddDiag(diag());
+                ptf.initAddDiag(this->diag());
             }
         }
 
         // Add the diagonal
-        forAll (psi_.boundaryField(), patchI)
+        forAll (x_.boundaryField(), patchI)
         {
-            const tetPolyPatchField<Type>& ptf = psi_.boundaryField()[patchI];
+            const tetPolyPatchField<Type>& ptf = x_.boundaryField()[patchI];
 
             if (ptf.coupled())
             {
-                ptf.addDiag(diag());
+                ptf.addDiag(this->diag());
             }
         }
     }
 
     // Upper triangle
 
-    if (hasUpper())
+    if (this->hasUpper())
     {
         // Initialise upper transfer
-        forAll (psi_.boundaryField(), patchI)
+        forAll (x_.boundaryField(), patchI)
         {
-            const tetPolyPatchField<Type>& ptf = psi_.boundaryField()[patchI];
+            const tetPolyPatchField<Type>& ptf = x_.boundaryField()[patchI];
 
             if (ptf.coupled())
             {
-                ptf.initAddUpperLower(upper());
+                ptf.initAddUpperLower(this->upper());
             }
         }
 
         // Add the upper
-        forAll (psi_.boundaryField(), patchI)
+        forAll (x_.boundaryField(), patchI)
         {
-            const tetPolyPatchField<Type>& ptf = psi_.boundaryField()[patchI];
+            const tetPolyPatchField<Type>& ptf = x_.boundaryField()[patchI];
 
             if (ptf.coupled())
             {
-                ptf.addUpperLower(upper());
+                ptf.addUpperLower(this->upper());
             }
         }
     }
 
     // Lower triangle
 
-    if (hasLower())
+    if (this->hasLower())
     {
         // Initialise lower transfer
-        forAll (psi_.boundaryField(), patchI)
+        forAll (x_.boundaryField(), patchI)
         {
-            const tetPolyPatchField<Type>& ptf = psi_.boundaryField()[patchI];
+            const tetPolyPatchField<Type>& ptf = x_.boundaryField()[patchI];
 
             if (ptf.coupled())
             {
-                ptf.initAddUpperLower(lower());
+                ptf.initAddUpperLower(this->lower());
             }
         }
 
         // Add the lower
-        forAll (psi_.boundaryField(), patchI)
+        forAll (x_.boundaryField(), patchI)
         {
-            const tetPolyPatchField<Type>& ptf = psi_.boundaryField()[patchI];
+            const tetPolyPatchField<Type>& ptf = x_.boundaryField()[patchI];
 
             if (ptf.coupled())
             {
-                ptf.addUpperLower(lower());
-            }
-        }
-    }
-}
-
-
-template<class Type>
-void tetFemMatrix<Type>::addCouplingSource(scalarField& sourceCmpt) const
-{
-    // Initialise source transfer
-    forAll (psi_.boundaryField(), patchI)
-    {
-        const tetPolyPatchField<Type>& ptf = psi_.boundaryField()[patchI];
-
-        if (ptf.coupled())
-        {
-            ptf.initAddSource(sourceCmpt);
-        }
-    }
-
-    // Add the source
-    forAll (psi_.boundaryField(), patchI)
-    {
-        const tetPolyPatchField<Type>& ptf = psi_.boundaryField()[patchI];
-
-        if (ptf.coupled())
-        {
-            ptf.addSource(sourceCmpt);
-        }
-    }
-}
-
-
-template<class Type>
-void tetFemMatrix<Type>::eliminateCouplingCoeffs()
-{
-    // Upper triangle
-    if (hasUpper())
-    {
-        // Eliminate the upper
-        forAll (psi_.boundaryField(), patchI)
-        {
-            const tetPolyPatchField<Type>& ptf = psi_.boundaryField()[patchI];
-
-            if (ptf.coupled())
-            {
-                ptf.eliminateUpperLower(upper());
-            }
-        }
-    }
-
-    // Lower triangle
-
-    if (hasLower())
-    {
-        // Eliminate the lower
-        forAll (psi_.boundaryField(), patchI)
-        {
-            const tetPolyPatchField<Type>& ptf = psi_.boundaryField()[patchI];
-
-            if (ptf.coupled())
-            {
-                ptf.eliminateUpperLower(lower());
+                ptf.addUpperLower(this->lower());
             }
         }
     }
@@ -296,7 +213,7 @@ tmp<Field<Type> > tetFemMatrix<Type>::distributeSource
     const Field<Type>& ef
 ) const
 {
-    const tetPolyMesh& mesh = psi().mesh();
+    const tetPolyMesh& mesh = x_.mesh();
 
     // Make a field over all points
     tmp<Field<Type> > tdistSu
@@ -312,7 +229,7 @@ tmp<Field<Type> > tetFemMatrix<Type>::distributeSource
     // Go through all the tets and add a quarter of the volume times ef
     // into each of the vertices. The cell integrals are prepared by the mesh
     labelList localToGlobalBuffer(mesh.maxNPointsForCell());
-    labelList globalToLocalBuffer(lduAddr().size(), -1);
+    labelList globalToLocalBuffer(this->lduAddr().size(), -1);
 
     scalarField coeffsBuffer
     (

@@ -82,8 +82,8 @@ tmp<tetFemMatrix<Type> > tetFem::laplacian
     tetFemMatrix<Type>& fem = tfem();
 
     // Get reference to upper and diagonal
-    scalarField& u = fem.upper();
-    scalarField& d = fem.diag();
+    scalarField& u = fem.upper().asScalar();
+    scalarField& d = fem.diag().asScalar();
 
     // In order to avoid excessive memory allocation and copying,
     // matrix coefficients and addressing are retrieved using a buffer.
@@ -147,7 +147,7 @@ tmp<tetFemMatrix<Type> > tetFem::laplacian
             {
                 label localJ = globalToLocalBuffer[neighbour[globalJEdge]];
 
-                // Not all neighbour of globalI are in the dense
+                // Not all neighbours of globalI are in the dense
                 // matrix; only if the global-to-local coefficient is not -1
                 if (localJ > -1)
                 {
@@ -257,6 +257,9 @@ tmp<tetFemMatrix<Type> > tetFem::laplacianTranspose
     GeometricField<Type, tetPolyPatchField, tetPointMesh>& vf
 )
 {
+    typedef typename CoeffField<Type>::squareType squareType;
+    typedef typename CoeffField<Type>::squareTypeField squareTypeField;
+
     const tetPolyMesh& mesh = vf.mesh();
 
     tmp<tetFemMatrix<Type> > tfem
@@ -269,13 +272,9 @@ tmp<tetFemMatrix<Type> > tetFem::laplacianTranspose
     );
     tetFemMatrix<Type>& fem = tfem();
 
-    // Get reference to internal field
-    const Field<Type>& psi = fem.psi().internalField();
-
-    // Get reference to upper and diagonal
-    scalarField& u = fem.upper();
-    scalarField& d = fem.diag();
-    Field<Type>& source = fem.source();
+    // Get reference to upper,lower and diagonal
+    squareTypeField& u = fem.upper().asSquare();
+    squareTypeField& d = fem.diag().asSquare();
 
     // In order to avoid excessive memory allocation and copying,
     // matrix coefficients and addressing are retrieved using a buffer.
@@ -290,10 +289,10 @@ tmp<tetFemMatrix<Type> > tetFem::laplacianTranspose
     labelList localToGlobalBuffer(mesh.maxNPointsForCell());
     labelList globalToLocalBuffer(lduAddr.size(), -1);
 
-    SquareMatrix<tensor> denseMatrix
+    SquareMatrix<squareType> denseMatrix
     (
         mesh.maxNPointsForCell(),
-        tensor::zero
+        pTraits<squareType>::zero
     );
 
     for (label cellI = 0; cellI < mesh.nCells(); cellI++)
@@ -316,20 +315,10 @@ tmp<tetFemMatrix<Type> > tetFem::laplacianTranspose
         {
             label globalI = localToGlobalBuffer[localI];
 
-            tensor& curDiagCoeff = denseMatrix[localI][localI];
-
             // Insert the diagonal
-            d[globalI] += curGamma*tr(curDiagCoeff);
+            d[globalI] += curGamma*denseMatrix[localI][localI];
 
-            source[globalI] +=
-                psi[globalI] &
-                (
-                    tr(curDiagCoeff)*I
-                  - curDiagCoeff
-                )*curGamma;
-
-            // Zero out the coefficient after insertion
-            curDiagCoeff = tensor::zero;
+            denseMatrix[localI][localI] = pTraits<squareType>::zero;
 
             // Insert the off-diagonal.
             // Here, look for the known global neighbours of the point
@@ -349,34 +338,20 @@ tmp<tetFemMatrix<Type> > tetFem::laplacianTranspose
                 label globalJ = neighbour[globalJEdge];
                 label localJ = globalToLocalBuffer[globalJ];
 
-                // Not all neighbour of globalI are in the dense
+                // Not all neighbours of globalI are in the dense
                 // matrix; only if the global-to-local coefficient is not -1
                 if (localJ > -1)
                 {
+                    squareType& curOffDiagCoeff =
+                        denseMatrix[min(localI, localJ)][max(localI, localJ)];
+
                     // It is unknown if the localI or localJ is lower:
                     // that depends on how the local points have been
                     // selected.  Therefore, the matrix (which is
                     // symmetric!) needs to be "folded"
-                    tensor& curOffDiagCoeff =
-                        denseMatrix[min(localI, localJ)][max(localI, localJ)];
+                    u[globalJEdge] += curGamma*curOffDiagCoeff.T();
 
-                    u[globalJEdge] += curGamma*tr(curOffDiagCoeff);
-
-                    source[globalI] +=
-                        curGamma*
-                        (
-                            tr(curOffDiagCoeff)*I
-                          - curOffDiagCoeff
-                        ).T() & psi[globalJ];
-
-                    source[globalJ] +=
-                        curGamma*
-                        (
-                            tr(curOffDiagCoeff)*I
-                          - curOffDiagCoeff
-                        ) & psi[globalI];
-
-                    curOffDiagCoeff = tensor::zero;
+                    curOffDiagCoeff = pTraits<squareType>::zero;
                 }
             }
         }
@@ -426,6 +401,9 @@ tmp<tetFemMatrix<Type> > tetFem::laplacianTrace
     GeometricField<Type, tetPolyPatchField, tetPointMesh>& vf
 )
 {
+    typedef typename CoeffField<Type>::squareType squareType;
+    typedef typename CoeffField<Type>::squareTypeField squareTypeField;
+
     const tetPolyMesh& mesh = vf.mesh();
 
     tmp<tetFemMatrix<Type> > tfem
@@ -438,13 +416,9 @@ tmp<tetFemMatrix<Type> > tetFem::laplacianTrace
     );
     tetFemMatrix<Type>& fem = tfem();
 
-    // Get reference to internal field
-    const Field<Type>& psi = fem.psi().internalField();
-
-    // Get reference to upper, diagonal and source
-    scalarField& u = fem.upper();
-    scalarField& d = fem.diag();
-    Field<Type>& source = fem.source();
+    // Get reference to upper and diagonal
+    squareTypeField& u = fem.upper().asSquare(); 
+    squareTypeField& d = fem.diag().asSquare();
 
     // In order to avoid excessive memory allocation and copying,
     // matrix coefficients and addressing are retrieved using a buffer.
@@ -459,10 +433,10 @@ tmp<tetFemMatrix<Type> > tetFem::laplacianTrace
     labelList localToGlobalBuffer(mesh.maxNPointsForCell());
     labelList globalToLocalBuffer(lduAddr.size(), -1);
 
-    SquareMatrix<tensor> denseMatrix
+    SquareMatrix<squareType> denseMatrix
     (
         mesh.maxNPointsForCell(),
-        tensor::zero
+        pTraits<squareType>::zero
     );
 
     for (label cellI = 0; cellI < mesh.nCells(); cellI++)
@@ -485,16 +459,9 @@ tmp<tetFemMatrix<Type> > tetFem::laplacianTrace
         {
             label globalI = localToGlobalBuffer[localI];
 
-            tensor& curDiagCoeff = denseMatrix[localI][localI];
+            d[globalI] += curGamma*denseMatrix[localI][localI];
 
-            d[globalI] += curGamma*tr(curDiagCoeff);
-
-            source[globalI] +=
-                curGamma*
-                ((tr(curDiagCoeff)*I - curDiagCoeff) & psi[globalI]);
-
-            // Zero out the coefficient after insertion
-            curDiagCoeff = tensor::zero;
+            denseMatrix[localI][localI] = pTraits<squareType>::zero;
 
             // Insert the off-diagonal.
             // Here, look for the known global neighbours of the point
@@ -514,34 +481,20 @@ tmp<tetFemMatrix<Type> > tetFem::laplacianTrace
                 label globalJ = neighbour[globalJEdge];
                 label localJ = globalToLocalBuffer[globalJ];
 
-                // Not all neighbour of globalI are in the dense
+                // Not all neighbours of globalI are in the dense
                 // matrix; only if the global-to-local coefficient is not -1
                 if (localJ > -1)
                 {
+                    squareType& curOffDiagCoeff =
+                        denseMatrix[min(localI, localJ)][max(localI, localJ)];
+
                     // It is unknown if the localI or localJ is lower:
                     // that depends on how the local points have been
                     // selected.  Therefore, the matrix (which is
                     // symmetric!) needs to be "folded"
-                    tensor& curOffDiagCoeff =
-                        denseMatrix[min(localI, localJ)][max(localI, localJ)];
+                    u[globalJEdge] += curGamma*curOffDiagCoeff;
 
-                    u[globalJEdge] += curGamma*tr(curOffDiagCoeff);
-
-                    source[globalI] +=
-                        curGamma*
-                        (
-                            (tr(curOffDiagCoeff)*I - curOffDiagCoeff)
-                          & psi[globalJ]
-                        );
-
-                    source[globalJ] +=
-                        curGamma*
-                        (
-                            (tr(curOffDiagCoeff)*I - curOffDiagCoeff).T()
-                          & psi[globalI]
-                        );
-
-                    curOffDiagCoeff = tensor::zero;
+                    curOffDiagCoeff = pTraits<squareType>::zero;
                 }
             }
         }
