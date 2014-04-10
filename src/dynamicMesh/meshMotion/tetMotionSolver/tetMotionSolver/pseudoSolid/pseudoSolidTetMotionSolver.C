@@ -116,7 +116,7 @@ void Foam::pseudoSolidTetMotionSolver::solve()
         applyConstraints(motionEqn);
 
         // Solve the motion equation
-        initialResidual = motionEqn.solve().initialResidual();
+        initialResidual = mag(motionEqn.solve().initialResidual());
 
         Pout << "Initial residual: " << initialResidual << endl;
     }

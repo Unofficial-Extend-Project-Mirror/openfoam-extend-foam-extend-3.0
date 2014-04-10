@@ -41,7 +41,7 @@ SourceFiles
 #include "tetPolyMesh.H"
 #include "tetPointFields.H"
 #include "elementFields.H"
-#include "lduMatrix.H"
+#include "blockLduMatrices.H"
 #include "motionDiff.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -92,8 +92,8 @@ protected:
             return *diffusionPtr_;
         }
 
-        // Holds recent solver performance
-        lduMatrix::solverPerformance solverPerf_;
+        //- Recent solver performance
+        blockVectorMatrix::solverPerformance solverPerf_;
 
 
 public:
@@ -125,7 +125,7 @@ public:
         virtual void updateMesh(const mapPolyMesh&);
 
         //- Return recent solver performance
-        const lduMatrix::solverPerformance& solverPerformance() const
+        const blockVectorMatrix::solverPerformance& solverPerformance() const
         {
             return solverPerf_;
         }
