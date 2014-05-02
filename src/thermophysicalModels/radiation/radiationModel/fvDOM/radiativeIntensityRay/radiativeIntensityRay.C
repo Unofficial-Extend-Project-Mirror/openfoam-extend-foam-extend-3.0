@@ -100,7 +100,7 @@ Foam::radiation::radiativeIntensityRay::radiativeIntensityRay
         0.5*deltaPhi*Foam::sin(2.0*theta)*Foam::sin(deltaTheta)
     );
 
-    dAve_ /= mag(dAve_);
+//    dAve_ /= mag(dAve_);
 
     autoPtr<volScalarField> IDefaultPtr;
 
